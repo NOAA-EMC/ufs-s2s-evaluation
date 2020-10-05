@@ -27,12 +27,19 @@ Also note that `drive_map_obs.sh` and `drive_anoms.sh` expect 35-day long netcdf
 **Parameters to be specified**
 
 hardcopy (yes or no)
+
 obs_root (path to top of obs directory)
+
 exp_root (path to top of exp directory) 
+
 exp_old  (ID for old exp)
+
 exp_new  (ID for new exp)
+
 varlist
+
 seasonlist
+
 domain
 
 
