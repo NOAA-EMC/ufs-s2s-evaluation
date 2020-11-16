@@ -1,4 +1,4 @@
-!/bin/bash -l               
+#!/bin/bash -l               
 #SBATCH -A marine-cpu        # -A specifies the account
 #SBATCH -n 1                 # -n specifies the number of tasks (cores) (-N would be for number of nodes) 
 #SBATCH --exclusive          # exclusive use of node - hoggy but OK
@@ -174,7 +174,7 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
                      echo "aggregating $exp $tag $varname"
                      #--  Extract target variable as grib2 file
 
-                      for hhh1 in {6..696..6} ; do
+                      for hhh1 in {6..840..6} ; do
                           hhh=$(printf "%03d" $hhh1)
                           if [ $res == "Orig" ] ; then
                              infile=${indir}/gfs.t00z.sfluxgrbf${hhh}.grib2
@@ -190,11 +190,6 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
                               exit
                           fi
                       done
-                      #for hhh1 in {702..840..6} ; do
-                      #    outfile_fill=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f${hhh} 
-                      #    outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f${hhh1}
-                      #    cp $outfile_fill $outfile
-                      #done
 
                      #--  String up all hours into one file
 
