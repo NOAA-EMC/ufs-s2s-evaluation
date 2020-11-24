@@ -19,8 +19,13 @@ plot_mom6_diff_ostia.py
 plot_mom6_diff_mlddata.py 
    - Plots difference of MODEL - MLD(data)
    - ./plot_mom6_diff_mlddata.py -h for usage 
+   - Data is expected in the form of (/scratch2/NCEPDEV/climate/Jessica.Meixner/Data/analysis/MLD/mld_DR003_c1m_reg2.0.nc) de Boyer Montégut et al. 2004
+
 
 Preprocessing data: 
+   - Some of the above scripts need preprocessed data (or optionally can use preprocessed data). 
+     Some useful information is below
+
    - Averages of files can be taken by using nco command: 
          (First: module load intel nco)
          ncea files_to_avg_*.nc   averageoutputfile.nc
