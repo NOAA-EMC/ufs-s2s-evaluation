@@ -80,7 +80,7 @@ if __name__ == "__main__":
     ap.add_argument('-i2', '--input2', help="path to Model file (grb2->netcdf file)", required=True)
     ap.add_argument('-t1', '--tag1', help="tag description of OSTIA", required=True)
     ap.add_argument('-t2', '--tag2', help="tag description of MODEL", required=True)
-    ap.add_argument('-m', '--varminmaxval', help="max/min value for plot", required=True)
+    ap.add_argument('-vm', '--varminmaxval', help="max/min value for plot", required=True)
     ap.add_argument('-v', '--variable', help="variable name to plot (only plots SST)", required=True)
     MyArgs = ap.parse_args()
     gen_figure(MyArgs.input1, MyArgs.input2, MyArgs.tag1, MyArgs.tag2, MyArgs.output, MyArgs.variable, MyArgs.varminmaxval)
