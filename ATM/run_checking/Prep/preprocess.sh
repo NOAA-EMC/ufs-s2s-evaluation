@@ -1,62 +1,224 @@
-#!/bin/bash -l
-#SBATCH -A marine-cpu
-#SBATCH --job-name=preprocess
-#SBATCH --partition=hera
-#SBATCH -q debug
-#SBATCH -t 00:30:00                 # if in debug, cannot be more than 00:30:00
-#SBATCH --nodes=1
+#!/bin/bash -l               
+#SBATCH -A marine-cpu        # -A specifies the account
+#SBATCH -n 1                 # -n specifies the number of tasks (cores) (-N would be for number of nodes) 
+#SBATCH --exclusive          # exclusive use of node - hoggy but OK
+#SBATCH -q debug             # -q specifies the queue; debug has a 30 min limit, but the default walltime is only 5min, to change, see below:
+#SBATCH -t 30                # -t specifies walltime in minutes; if in debug, cannot be more than 30
 
-    # Start/end delimiters for initial conditions
-
-        ystart=2013; yend=2013;  ystep=1
-        mstart=2;    mend=12;    mstep=6
-        dstart=1;    dend=1;    dstep=14
-
-    # Name and location of experiment output on HPSS
-
-       # exp_new=P4p0_uncoupled_GSL
-        #upload_root=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/                # store uploaded data here
-
-        exp_new=P4p0_uncoupled_GFS
-        upload_root=/scratch2/BMC/gsd-fv3-dev/Ben.Green/WPO_S2S_35d_output/
-
-        exp_new=ufs_p4
-        upload_root=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/                # store uploaded data here
-
-        exp_root=/scratch2/NCEPDEV/climate/Lydia.B.Stefanova/Models/
-        res=1p00                                                                       # currently the only resolution implemented
-
-    # Specify list of variables to preprocess (turn from 6-hourly grib2 into a 35-day series of daily netcdf)
-
-        declare -a varlist=( "land" "tmpsfc" "tmp2m" "t2min" "t2max" "icetk" "icec" "ulwrftoa" "prate" ) 
-        #declare -a varlist=(  "ulwrftoa" "prate" ) 
-        #declare -a varlist=("dlwrf" "dswrf" "ulwrf" "uswrf" "pwat" "cloudbdry") 
-        #declare -a varlist=("soilm02m" "sfcr" "pres")
-        #declare -a varlist=("cloudlow" "cloudmid" "cloudhi")
-       # declare -a varlist=("u10" "v10")
-        #        declare -a varlist=("shtfl" "lhtfl")
-        #declare -a varlist=("cloudlow" "cloudmid" "cloudhi" "cloudbdry" "pwat")
+module load intel
+module load nco
+module load cdo
+module load wgrib2
 
 
-    # The plotting scripts are prepared to handle variables on the list below:
+for ARGUMENT in "$@"
+do
 
-        oknames=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soill01d soill14d soill41m soill12m tsoil01d tsoil14d tsoil41m tsoil12mo soilm02m sfcr)
+    KEY=$(echo $ARGUMENT | cut -f1 -d=)
+    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+
+    case "$KEY" in
+            exp)         exp=${VALUE} ;;
+            wherefrom)   wherefrom=${VALUE} ;;
+            whereto)     whereto=${VALUE} ;;
+            varname)     varname=${VALUE} ;;
+            res)         res=${VALUE} ;;
+            ystart)      ystart=${VALUE} ;;
+            yend)        yend=${VALUE} ;;
+            ystep)       ystep=${VALUE} ;;
+            mstart)      mstart=${VALUE} ;;
+            mend)        mend=${VALUE} ;;
+            mstep)       mstep=${VALUE} ;;
+            dstart)      dstart=${VALUE} ;;
+            dend)        dend=${VALUE} ;;
+            dstep)       dstep=${VALUE} ;;
+            *) ;;
+    esac
 
 
-#====================================================================================================
-for exp in $exp_new ; do
-    wherefrom=${upload_root}/${exp}
-    whereto=${exp_root}/${exp}/${res}
-    mkdir -p $whereto
-    for varname in ${varlist[@]} ; do
-        case "${oknames[@]}" in 
-             *"$varname"*)  ;; 
-             *)
-             echo "Exiting. To continue, please correct: plotting not implemented for variable ---> $varname <---"
-             exit
-        esac
-        bash preprocess_full.sh exp=$exp varname=$varname wherefrom=$wherefrom whereto=$whereto res=$res ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep
+done
+
+
+# ------------------ Generally, DO NOT CHANGE BELOW -----------------
+myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soill01d soill14d soill41m soill12m tsoil01d tsoil14d tsoil41m tsoil12mo soilm02m sfcr)
+
+
+for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
+    for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )); do
+        for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )); do
+            mm=$(printf "%02d" $mm1)
+            dd=$(printf "%02d" $dd1)
+            tag=${yyyy}${mm}${dd}
+            indir=${wherefrom}/${tag}00/gfs.$tag/00    # directory with model output files for given start date
+
+            if [ ! -d $indir ] ; then
+               echo " indir $indir does not exist"
+            else
+
+            if [ ! -d $whereto/6hrly/${tag} ] ; then mkdir -p $whereto/6hrly/${tag} ; fi
+            if [ ! -d $whereto/dailymean/${tag} ] ; then mkdir -p $whereto/dailymean/${tag} ; fi
+
+            case "${myarray[@]}" in
+                *"$varname"*)  ;;
+                *)
+                echo "Exiting. To continue, please correct: unknown variable ---> $varname <---"
+                exit
+            esac
+
+            aggregate="-daymean"
+            tomatch2=""
+            if [ $varname == "sfcr" ] ; then
+               tomatch="SFCR:surface"; aggregate="-daymean"
+            fi
+            if [ $varname == "land" ] ; then
+               tomatch="LAND:surface"; aggregate="-daymean"
+            fi
+               #-- Temperature
+            if [ $varname == "tmpsfc" ] ; then
+               tomatch="TMP:surface:"; aggregate="-daymean"
+            fi
+            if [ $varname == "tmp2m" ] ; then
+               tomatch="TMP:2 m above ground:"; aggregate="-daymean"
+            fi
+            if [ $varname == "t2max" ] ; then
+               tomatch="TMAX:2 m above ground:"; aggregate="-daymax"
+            fi
+            if [ $varname == "t2min" ] ; then
+               tomatch="TMIN:2 m above ground:"; aggregate="-daymin"
+            fi
+               #-- Precipitation
+            if [ $varname == "prate" ] ; then
+               tomatch="PRATE:surface:"; aggregate="-daymean"
+            fi
+            if [ $varname == pwat ] ; then
+               tomatch="PWAT"; aggregate="-daymean"
+            fi
+               #-- Clouds
+            if [ $varname == cloudbdry ] ; then
+               tomatch="CDC:boundary"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == cloudlow ] ; then
+               tomatch="CDC:low"; aggregate="-daymean"
+            fi
+            if [ $varname == cloudmid ] ; then
+               tomatch="CDC:mid"; aggregate="-daymean"
+            fi
+            if [ $varname == cloudhi ] ; then
+               tomatch="CDC:hi"; aggregate="-daymean"
+            fi
+               #-- Radiation
+            if [ $varname == dswrf ] ; then
+               tomatch="DSWRF:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == dlwrf ] ; then
+               tomatch="DLWRF:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == ulwrf ] ; then
+               tomatch="ULWRF:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == uswrf ] ; then
+               tomatch="USWRF:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == "ulwrftoa" ] ; then
+               tomatch="ULWRF:top of atmosphere:"; aggregate="-daymean"
+            fi
+               #-- Fluxes
+            if [ $varname == lhtfl ] ; then
+               tomatch="LHTFL:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == shtfl ] ; then
+               tomatch="SHTFL:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == uflx ] ; then
+               tomatch="UFLX"; aggregate="-daymean"
+            fi
+            if [ $varname == vflx ] ; then
+               tomatch="VFLX"; aggregate="-daymean"
+            fi
+               #-- Winds
+            if [ $varname == u10 ] ; then
+               tomatch="UGRD:10"; aggregate="-daymean"
+            fi
+            if [ $varname == v10 ] ; then
+               tomatch="VGRD:10"; aggregate="-daymean"
+            fi
+               #-- Pressure
+            if [ $varname == pres ] ; then
+               tomatch="PRES:surface"; aggregate="-daymean"
+            fi
+               #-- Snow and ice-related
+            if [ $varname == weasd ] ; then
+               tomatch="WEASD:surface"; aggregate="-daymean"
+            fi
+            if [ $varname == snod ] ; then
+               tomatch="SNOD:surface"; aggregate="-daymean"
+            fi
+            if [ $varname == snow ] ; then
+               tomatch="SNOWC:surface"; tomatch2="ave"; aggregate="-daymean"
+            fi
+            if [ $varname == "icetk" ] ; then
+               tomatch="ICETK:surface:"; aggregate="-daymean"
+            fi
+            if [ $varname == "icec" ] ; then
+               tomatch="ICEC:surface:";  aggregate="-daymean"
+            fi
+
+            # SOIL MOISTURE AND TEMPERATURE
+            if [ $varname == "soilm02m" ] ; then
+               tomatch="SOIL_M:0-2 m"; aggregate="-daymean"
+            fi
+
+            if [ -d ${indir} ] ; then
+            if [ ! -f ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2 ] ; then
+
+                     echo "aggregating $exp $tag $varname"
+                     #--  Extract target variable as grib2 file
+
+                      for hhh1 in {6..840..6} ; do
+                          hhh=$(printf "%03d" $hhh1)
+                          if [ $res == "Orig" ] ; then
+                             infile=${indir}/gfs.t00z.sfluxgrbf${hhh}.grib2
+                             outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.Orig.f${hhh}
+                          else
+                             infile=${indir}/gfs.t00z.flux.${res}.f${hhh}
+                             outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f${hhh}
+                          fi
+                          if [ -f $infile ] ; then
+                              wgrib2 -match "$tomatch" $infile -match "$tomatch2" -grib $outfile > /dev/null
+                          else
+                              echo " missing $infile : cannot continue"
+                              exit
+                          fi
+                      done
+
+                     #--  String up all hours into one file
+
+                      cat ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f??? > ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2
+
+                     #--  Clean up
+
+                      rm ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f???
+
+                     #--  Convert grib2 to nc:
+
+                      wgrib2 ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2 -netcdf ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.nc > /dev/null
+                   else
+                   echo "$exp $tag $varname already processed"
+
+                   fi
+                   if [ ! -f $whereto/dailymean/${tag}/${varname}.${exp}.${tag}.dailymean.${res}.nc ] ; then
+
+                     #--  Convert 6-hourly to daily nc:
+                      cdo shifttime,1sec "$aggregate" -shifttime,-1sec \
+                          $whereto/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.nc \
+                          $whereto/dailymean/${tag}/${varname}.${exp}.${tag}.dailymean.${res}.nc > /dev/null
+                   fi
+
+            fi
+            fi
 done
 done
+done
+
 
 
