@@ -25,12 +25,15 @@
     # Other specitications
 
 
-        hardcopy=no        # Valid choices are yes no      
+        hardcopy=no         # Valid choices are yes no      
         domain=Global       # Valid choices see [case "$domain" list] in mapping script
                             # NB: keep in mind that verifying obs for tmpsfc (OSTIA SST) are not valid for ice-covered areas because tmpsfc there is not sst
 
+        reference=cfsr      # Valid choices are cfsr or era5; this choice currently only applies to tmp2m; if not specified, defaults to era5
+
         declare -a varlist=("tmp2m" )            # Valid choices for comparison with OBS are "tmpsfc" "prate" "ulwrftoa" "tmp2m" "t2min" "t2max" 
         declare -a seasonlist=( "JJA" "DJF" "AllAvailable")     # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
+       
 
 
 
@@ -48,7 +51,7 @@ for season in "${seasonlist[@]}" ; do
             #bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask
 
             varname="tmp2m"; mask="landonly"
-            bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask
+            bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
 
             varname="prate"; mask="nomask"
             bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask
