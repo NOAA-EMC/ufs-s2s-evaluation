@@ -20,6 +20,7 @@ do
             hardcopy)   hardcopy=${VALUE} ;;
             domain)     domain=${VALUE} ;;  
             varModel)   varModel=${VALUE} ;;   
+            reference)  reference=${VALUE} ;;   
             season)     season=${VALUE} ;;   
             nameModelA) nameModelA=${VALUE} ;;
             nameModelB) nameModelB=${VALUE} ;;
@@ -69,8 +70,7 @@ esac
        fi
        if [ "$varModel" == "tmp2m" ] ; then
           ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K";mask="landonly"
-          nameObs="era5";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
-          nameObs="cfsr";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
 
        fi
        if [ "$varModel" == "tmpsfc" ] ; then

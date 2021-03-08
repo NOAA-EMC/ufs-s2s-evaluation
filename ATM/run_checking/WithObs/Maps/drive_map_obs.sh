@@ -26,29 +26,26 @@
     # Other specitications
 
 
-        nplots=3      # valid choices are 9 or 3 or 1; 
+        nplots=3      # Valid choices are 9 or 3 or 1; 
                       # "9" plots full fields for obs, exp_old, exp_new AND bias for exp_old, exp_new AND  difference exp_new - exp_old
                       # "3" plots bias for exp_old, exp_new AND  difference exp_new - exp_old
                       # "1" plots difference exp_new - exp_old (and is therefore independent of the choice of reference obs)
 
         mapscript=map_compare_obs.sh    
-        hardcopy=no       # Valid choices are yes no      
+        hardcopy=no                # Valid choices are yes no      
         domain=GlobalTropics       # Valid choices see [case "$domain" list] in mapping script
-        domain=Global       # Valid choices see [case "$domain" list] in mapping script
-                            # NB: keep in mind that verifying obs for tmpsfc (OSTIA SST) are not valid for ice-covered areas because tmpsfc there is not sst
-        
-        declare -a varlist=("ulwrftoa" "tmp2m" "tmpsfc" "prate" "t2min" "t2max"  )     # Valid choices for comparison with OBS are "tmpsfc" "prate" "ulwrftoa" "tmp2m" "t2min" "t2max" 
+        domain=Global              # Valid choices see [case "$domain" list] in mapping script
+        reference=cfsr             # Current valid choudes are era5 and cfsr; currently only used for tmp2m; if omitted, defaults to era5
 
-        declare -a seasonlist=(  "JJA" "AllAvailable")     # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
-        declare -a varlist=("tmp2m" )
-
+      # NB: keep in mind that verifying obs for tmpsfc (OSTIA SST) are not valid for ice-covered areas because tmpsfc there is not sst
+        declare -a varlist=("tmp2m" "tmpsfc" )  # Current valid choices for comparison with OBS are "tmpsfc" "prate" "ulwrftoa" "tmp2m" "t2min" "t2max" 
+        declare -a seasonlist=("JJA" "AllAvailable")     # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
 
         for season in ${seasonlist[@]} ; do
-        for varname in ${varlist[@]}; do
-        
-            day1=14; day2=28
-            echo "using $mapscript $day1 to $day2 for $varname"
-            bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new ystart=$ystart yend=$yend ystep=$ystep  mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots
+            for varname in ${varlist[@]}; do
+                day1=14; day2=28
+                echo "using $mapscript $day1 to $day2 for $varname"
+                bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname reference=$reference domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new ystart=$ystart yend=$yend ystep=$ystep  mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots
 
 done
 done
