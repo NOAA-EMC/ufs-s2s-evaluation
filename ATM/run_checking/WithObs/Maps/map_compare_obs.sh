@@ -412,6 +412,8 @@ cat << EOF > $nclscript
   loadscript("../../ncl/panelopts.ncl")
   setcolors("{$varModel}")
 
+  panelopts@gsnPanelMainString = "${varModel} vs ${nameObs}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
+
   if ($nplots.eq.9) then
      if (isStrSubset("$domain","NP").or.isStrSubset("$domain","SP")) then
         plot(0) = gsn_csm_contour_map_polar(wks,${nameObs}_mean,res0)
@@ -451,7 +453,6 @@ cat << EOF > $nclscript
      gsn_panel(wks,plot,(/1/),panelopts)
    end if
 
-  panelopts@gsnPanelMainString = "${varModel}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
 
 EOF
 
