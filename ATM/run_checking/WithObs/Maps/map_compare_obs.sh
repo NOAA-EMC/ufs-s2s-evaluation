@@ -20,6 +20,7 @@ do
             hardcopy)   hardcopy=${VALUE} ;;
             domain)     domain=${VALUE} ;;  
             varModel)   varModel=${VALUE} ;;   
+            reference)  reference=${VALUE} ;;   
             season)     season=${VALUE} ;;   
             nameModelA) nameModelA=${VALUE} ;;
             nameModelB) nameModelB=${VALUE} ;;
@@ -69,7 +70,8 @@ esac
        fi
        if [ "$varModel" == "tmp2m" ] ; then
           ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K";mask="landonly"
-          nameObs="era5";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
@@ -410,6 +412,8 @@ cat << EOF > $nclscript
   loadscript("../../ncl/panelopts.ncl")
   setcolors("{$varModel}")
 
+  panelopts@gsnPanelMainString = "${varModel} vs ${nameObs}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
+
   if ($nplots.eq.9) then
      if (isStrSubset("$domain","NP").or.isStrSubset("$domain","SP")) then
         plot(0) = gsn_csm_contour_map_polar(wks,${nameObs}_mean,res0)
@@ -449,7 +453,6 @@ cat << EOF > $nclscript
      gsn_panel(wks,plot,(/1/),panelopts)
    end if
 
-  panelopts@gsnPanelMainString = "${varModel}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
 
 EOF
 

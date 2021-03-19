@@ -61,6 +61,13 @@ esac
           nameObs="t2min_CPC";  varObs="tmin"; ncvarObs="tmin"; multObs=1.; offsetObs=273.15
           cmin=-5.; cmax=5.
        fi
+       if [ "$varModel" == "tmp2m" ] ; then
+          ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"
+          #nameObs="era5";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          nameObs="cfsr";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          cmin=-5.; cmax=5.
+       fi
+
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
           nameObs="sst_OSTIA";  varObs="sst_OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
