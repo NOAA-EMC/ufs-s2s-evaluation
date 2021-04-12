@@ -232,7 +232,7 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"rmse.${varModel}.${nameModelA}.${nameModelB}.${season}.${ystart}-${yend}.${truelength}IC.$domain.$mask")
+  wks                          = gsn_open_wks(wks_type,"rmse.${varModel}.${nameModelA}.${nameModelB}.${nameObs}.${season}.${ystart}-${yend}.${truelength}IC.$domain.$mask")
 
   latStart=${latS}
   latEnd=${latN}

@@ -225,7 +225,7 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"biasmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${season}.${startname}.$domain.d${d1p1}-d${d2p1}")
+  wks                          = gsn_open_wks(wks_type,"biasmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${nameObs}.${season}.${startname}.$domain.d${d1p1}-d${d2p1}")
 
   latStart=${latS}
   latEnd=${latN}

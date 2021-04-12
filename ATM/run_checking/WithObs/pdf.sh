@@ -10,6 +10,7 @@
 #
 # The result is a four-panel plot with time series of a) area mean, b) area mean bias, c) raw RMS, d) bias-corrected RMS
 
+module load ncl
 
 for ARGUMENT in "$@"
 do
@@ -234,7 +235,7 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"biaspdf.${varModel}.${nameModelA}.${nameModelB}.${season}.${truelength}ICs.$domain.$mask")
+  wks                          = gsn_open_wks(wks_type,"biaspdf.${varModel}.${nameModelA}.${nameModelB}.${nameObs}.${season}.${truelength}ICs.$domain.$mask")
 
   latStart=${latS}
   latEnd=${latN}
