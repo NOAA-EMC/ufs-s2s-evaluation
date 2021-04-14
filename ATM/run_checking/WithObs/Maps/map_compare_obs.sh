@@ -20,6 +20,7 @@ do
             hardcopy)   hardcopy=${VALUE} ;;
             domain)     domain=${VALUE} ;;  
             varModel)   varModel=${VALUE} ;;   
+            reference)  reference=${VALUE} ;;   
             season)     season=${VALUE} ;;   
             nameModelA) nameModelA=${VALUE} ;;
             nameModelB) nameModelB=${VALUE} ;;
@@ -55,6 +56,18 @@ case "$domain" in
     *)
 esac
 
+       if [ "$varModel" == "u200" ] ; then
+          ncvarModel="UGRD_200mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
+          nameObs="${reference:-era5}";  varObs="u200"; ncvarObs="UGRD_200mb"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "u850" ] ; then
+          ncvarModel="UGRD_850mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
+          nameObs="${reference:-era5}";  varObs="u850"; ncvarObs="UGRD_850mb"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "z500" ] ; then
+          ncvarModel="HGT_500mb"; multModel=1.; offsetModel=0.; units="m";mask="nomask"
+          nameObs="${reference:-era5}";  varObs="z500"; ncvarObs="HGT_500mb"; multObs=1.; offsetObs=0.
+       fi
        if [ "$varModel" == "t2max" ] ; then
           ncvarModel="TMAX_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"; mask="landonly"
           nameObs="t2max_CPC";  varObs="tmax"; ncvarObs="tmax"; multObs=1.; offsetObs=273.15
@@ -68,8 +81,8 @@ esac
           nameObs="t2m_from_minmax_CPC";  varObs="t2m_CPC"; ncvarObs="t2m"; multObs=1.; offsetObs=273.15
        fi
        if [ "$varModel" == "tmp2m" ] ; then
-          ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K";mask="landonly"
-          nameObs="era5";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K";mask="nomask"
+          nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
@@ -212,7 +225,7 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"biasmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${season}.${startname}.$domain.d${d1p1}-d${d2p1}")
+  wks                          = gsn_open_wks(wks_type,"biasmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${nameObs}.${season}.${startname}.$domain.d${d1p1}-d${d2p1}")
 
   latStart=${latS}
   latEnd=${latN}
@@ -410,6 +423,8 @@ cat << EOF > $nclscript
   loadscript("../../ncl/panelopts.ncl")
   setcolors("{$varModel}")
 
+  panelopts@gsnPanelMainString = "${varModel} vs ${nameObs}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
+
   if ($nplots.eq.9) then
      if (isStrSubset("$domain","NP").or.isStrSubset("$domain","SP")) then
         plot(0) = gsn_csm_contour_map_polar(wks,${nameObs}_mean,res0)
@@ -449,7 +464,6 @@ cat << EOF > $nclscript
      gsn_panel(wks,plot,(/1/),panelopts)
    end if
 
-  panelopts@gsnPanelMainString = "${varModel}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
 
 EOF
 

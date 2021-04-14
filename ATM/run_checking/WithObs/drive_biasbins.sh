@@ -6,20 +6,21 @@
 #SBATCH -t 30                # -t specifies walltime in minutes; if in debug, cannot be more than 30
 #
 #
-# This is a tiny little package that compares two sets of (exp1 and exp2) for a chosen variable, domain, season
-# top directory with preprocessed files 
+module load intel
+module load ncl
 
+    
     whereexp=$noscrub/Models
     whereobs=$noscrub/ReferenceData
     
-    hardcopy=yes                        # yes | no
+    hardcopy=no                        # yes | no
 
     ystart=2011; yend=2018
 
     mstart=1; mend=12; mstep=1
 
-    exp1=ufs_b3
-    exp2=ufs_b31
+    exp1=ufs_b1
+    exp2=ufs_p5
 
     domain=GlobalTropics                   # Global | Global50 | GlobalTropics | Nino3.4 | NAM | CONUS 
     domain=Global20
@@ -34,7 +35,7 @@
     #for varname in tmpsfc prate ulwrftoa t2min t2max; do
 
  for season in $season ; do
-     bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=prate domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
+     bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=tmp2m domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
      #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=t2min domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
      #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=t2max domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
      #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=ulwrftoa domain=NP hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=none
