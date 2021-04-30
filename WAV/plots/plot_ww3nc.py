@@ -53,7 +53,7 @@ def read_var(datapath, varname):
     else:
       data = datanc.variables[varname][0,...]
     dataout, lonout = cutil.add_cyclic_point(data, coord=lons)
-    dat = anc.close()
+    data = nc.close()
     return dataout, lonout, latout
 
 

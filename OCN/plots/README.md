@@ -22,6 +22,11 @@ plot_mom6_diff_mlddata.py
    - Data is expected in the form of (/scratch2/NCEPDEV/climate/Jessica.Meixner/Data/analysis/MLD/mld_DR003_c1m_reg2.0.nc) de Boyer Montégut et al. 2004
 
 
+Modules for hera: 
+module use -a /scratch2/NCEPDEV/marineda/Jong.Kim/save/modulefiles/
+module load anaconda/3.15.1
+
+
 Preprocessing data: 
    - Some of the above scripts need preprocessed data (or optionally can use preprocessed data). 
      Some useful information is below
