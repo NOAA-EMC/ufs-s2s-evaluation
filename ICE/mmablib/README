@@ -1,0 +1,6 @@
+first:
+  cd mmablib
+  make
+
+then ready for building sea ice verification tools.  They are broken 
+  out by variable being scored.  Not all are complete yet.  drift is in best shape.
