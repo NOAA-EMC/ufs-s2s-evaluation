@@ -7,7 +7,7 @@
 #
     # Start/end delimiters for initial conditions
 
-        ystart=2011; yend=2018;  ystep=1
+        ystart=2012; yend=2012;  ystep=1
         mstart=1;    mend=12;    mstep=1
         dstart=1;    dend=15;     dstep=14
 
@@ -18,38 +18,46 @@
         whereexp=$exp_root
         whereobs=$obs_root
 
-        exp_old=ufs_p5
-        exp_new=ufs_p6
+        exp_old=ufs_p6
+        exp_new=ufs_p7
         res=1p00
 
     # Other specitications
 
         hardcopy=no         # Valid choices are yes no      
-        reference=cfsr      # Valid choices are cfsr or era5; this choice currently only applies to tmp2m; if not specified, defaults to era5
 
-        declare -a varlist=("tmp2m" "z500")            # Valid choices for comparison with OBS are "tmpsfc" "prate" "ulwrftoa" "tmp2m" "t2min" "t2max" 
-        declare -a seasonlist=( "AllAvailable")     # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
+    #  reference: Valid choices are era5, cfsr, or gefs12r (only applies to z500, u200, u850, tmp2m
+    #             Defaults to era5 if not specified
+
+        reference=gefs12r      
+
+    # var: Valid choices for comparison with OBS are: 
+    # tmpsfc, prate, ulwrftoa, tmp2m, t2min, t2max, z500, u200, u850 cloudtot, dswrf, uswrf, dlwrf, dswrf
+ 
+        declare -a varlist=("cloudtot" "dswrf" "tmp2m" "z500")   
+
+    # season: Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
+        declare -a seasonlist=( "AllAvailable")     
+
+    # domain: Valid choices are Global Nino34 GlobalTropics
        
+        declare -a domainlist=("Global")
+  
+    # mask: Valid choices are nomask, oceanonly, landonly. Defaults to "nomask" if not specified. 
+        
+        mask="oceanonly"
+        mask="nomask"
 
-for season in "${seasonlist[@]}" ; do
-        for domain in GlobalTropics Maritime ; do # Global Nino34 GlobalTropics ; do
-
-            varname="z500"; mask="nomask"
-            bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
-            varname="u850"; mask="nomask"
-            bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
-            varname="u200"; mask="nomask"
-            bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
-            varname="tmpsfc"; mask="oceanonly"
-            #bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
-            varname="tmp2m"; mask="nomask"
-            #bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
-            varname="ulwrftoa"; mask="nomask"
-            #bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
-            varname="prate"; mask="nomask"
-            #bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new  ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
+    for season in "${seasonlist[@]}" ; do
+        for domain in "${domainlist[@]}" ; do
+            for varname in "${varlist[@]}" ; do
+                bash anoms12.sh whereexp=$whereexp whereobs=$whereobs varModel=$varname domain=$domain \
+                                hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new \
+                                ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep \
+                                dstart=$dstart dend=$dend dstep=$dstep mask=$mask reference=$reference
 
             done
         done
+    done
 
 

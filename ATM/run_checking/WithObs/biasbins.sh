@@ -29,7 +29,8 @@ do
             mstart)     mstart=${VALUE} ;;               # first month to consider
             mend)       mend=${VALUE} ;;                 # last month to consider
             mstep)      mstep=${VALUE} ;;                # interval between months to consider
-            mask)       mask=${VALUE} ;;             # oceanonly/landonly/none
+            mask)       mask=${VALUE} ;;                 # oceanonly/landonly/none
+            reference)  reference=${VALUE} ;;           # era5/cfsr/gefs12r
             *)
     esac
 done
@@ -61,13 +62,6 @@ esac
           nameObs="t2min_CPC";  varObs="tmin"; ncvarObs="tmin"; multObs=1.; offsetObs=273.15
           cmin=-5.; cmax=5.
        fi
-       if [ "$varModel" == "tmp2m" ] ; then
-          ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"
-          #nameObs="era5";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
-          nameObs="cfsr";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
-          cmin=-5.; cmax=5.
-       fi
-
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
           nameObs="sst_OSTIA";  varObs="sst_OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
@@ -75,8 +69,8 @@ esac
        fi
        if [ "$varModel" == "prate" ] ; then
           ncvarModel="PRATE_surface"; multModel=86400.; offsetModel=0.; units="mm/day"
-          nameObs="pcp_CPC_Global";  varObs="rain"; ncvarObs="rain"; multObs=0.1; offsetObs=0.
-          #nameObs="pcp_TRMM";  varObs="pcp-TRMM"; ncvarObs="precipitation"; multObs=1; offsetObs=0.
+          #nameObs="pcp_CPC_Global";  varObs="rain"; ncvarObs="rain"; multObs=0.1; offsetObs=0.
+          nameObs="pcp_TRMM";  varObs="pcp-TRMM"; ncvarObs="precipitation"; multObs=1; offsetObs=0.
           cmin=-5.; cmax=5.
        fi
        if [ "$varModel" == "ulwrftoa" ] ; then
@@ -84,6 +78,67 @@ esac
           nameObs="olr_HRIS"; varObs="ulwrftoa"; ncvarObs="olr"; multObs=1.; offsetObs=0.; units="W/m^2"
           cmin=-40.; cmax=40.
        fi
+       if [ "$varModel" == "tmp2m" ] ; then
+          ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"
+          nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="tmp2m.gefs12r"
+          fi
+          cmin=-5.; cmax=5.
+       fi
+       if [ "$varModel" == "u200" ] ; then
+          ncvarModel="UGRD_200mb"; multModel=1.; offsetModel=0.; units="m/s"
+          nameObs="${reference:-era5}";  varObs="u200"; ncvarObs="UGRD_200mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
+          cmin=-5.; cmax=5.
+       fi
+       if [ "$varModel" == "u850" ] ; then
+          ncvarModel="UGRD_850mb"; multModel=1.; offsetModel=0.; units="m/s"
+          nameObs="${reference:-era5}";  varObs="u850"; ncvarObs="UGRD_850mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
+          cmin=-5.; cmax=5.
+       fi
+       if [ "$varModel" == "z500" ] ; then
+          ncvarModel="HGT_500mb"; multModel=1.; offsetModel=0.; units="m"
+          nameObs="${reference:-era5}";  varObs="z500"; ncvarObs="HGT_500mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
+          cmin=-40.; cmax=40.
+       fi
+       if [ "$varModel" == "cloudtot" ] ; then
+           ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="total_CERES"; ncvarObs="cldarea_total_daily"; multObs=1.; offsetObs=0.
+          cmin=-40.; cmax=40.
+       fi
+       if [ "$varModel" == "uswrf" ] ; then
+           ncvarModel="USWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_sw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+          cmin=-100.; cmax=100.
+       fi
+
+       if [ "$varModel" == "dswrf" ] ; then
+           ncvarModel="DSWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_sw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+          cmin=-100.; cmax=100.
+       fi
+       if [ "$varModel" == "ulwrf" ] ; then
+           ncvarModel="ULWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_lw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+          cmin=-100.; cmax=100.
+       fi
+       if [ "$varModel" == "dlwrf" ] ; then
+           ncvarModel="DLWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_lw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+          cmin=-100.; cmax=100.
+       fi
+
+
+
 
 # Names for the anomaly arrays
        nameModelBA=${nameModelB}_minus_${nameModelA}
@@ -108,7 +163,9 @@ esac
            tag=$yyyy$mm${dd}
            if [ -f $whereexp/$nameModelA/1p00/dailymean/${tag}/${varModel}.${nameModelA}.${tag}.dailymean.1p00.nc ] ; then
               if [ -f $whereexp/$nameModelB/1p00/dailymean/${tag}/${varModel}.${nameModelB}.${tag}.dailymean.1p00.nc ] ; then
-                  pathObs="$whereobs/$nameObs/1p00/dailymean"
+                  pathObs="$whereobs/$nameObs/1p00/dailymean/${tag}"
+                  if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/dailymean/" ; fi
+                  if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/" ; fi
                   if [ "$nameObs" == "pcp_TRMM" ] ;  then
                       pathObs="$whereobs/$nameObs/1p00"
                   fi
@@ -362,7 +419,7 @@ cat << EOF > $nclscript
 
     histopts@tiXAxisOn                                = False                                    ; no X axis title
     histopts@tiYAxisOn                                = False                                    ; no Y axis title
-    histopts@trYMaxF                                  = (1.*n_obs)                              ; Y axis scale
+    histopts@trYMaxF                                  = (0.5*n_obs)                              ; Y axis scale
 
     histopts@gsnHistogramCompare        = True
 

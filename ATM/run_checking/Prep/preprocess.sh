@@ -32,6 +32,7 @@ do
             dstart)      dstart=${VALUE} ;;
             dend)        dend=${VALUE} ;;
             dstep)       dstep=${VALUE} ;;
+            ftype)       ftype=${VALUE} ;;
             *) ;;
     esac
 
@@ -40,13 +41,9 @@ done
 
 
 # ------------------ Generally, DO NOT CHANGE BELOW -----------------
-myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soill01d soill14d soill41m soill12m tsoil01d tsoil14d tsoil41m tsoil12mo soilm02m sfcr u850 u200 z500)
+#myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa uswrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soill01d soill14d soill41m soill12m tsoil01d tsoil14d tsoil41m tsoil12m soilm02m sfcr spfh2m u850 v850 z500 u200 v200 cloudtot)
+myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa uswrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soilm02m tsoil12m sfcr spfh2m u850 v850 z500 u200 v200 cloudtot)
 
-if [ $varname == "u850" ] || [  $varname == "u200" ] || [ $varname == "z500" ] ; then
-   ftype=pgrb2
-else
-   ftype=sfc
-fi
 
 for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
     for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )); do
@@ -54,17 +51,11 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
             mm=$(printf "%02d" $mm1)
             dd=$(printf "%02d" $dd1)
             tag=${yyyy}${mm}${dd}
-            indir=${wherefrom}/${tag}00/gfs.$tag/00/atmos    # directory with model output files for given start date
-            if [ ! -d $indir ] ; then
-               indir=${wherefrom}/${tag}/gfs.$tag/00/atmos
-            fi
-            if [ ! -d $indir ] ; then
-               indir=${wherefrom}/${tag}00/gfs.$tag/00
-            fi
-            if [ ! -d $indir ] ; then
-               indir=${wherefrom}/${tag}/gfs.$tag/00
-            fi
-
+            indir=${wherefrom}/${tag}/gfs.$tag/00/atmos/
+         # try a few more variants of the layout, in case the previous one doesn't exist
+            if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}00/gfs.${tag}/00/atmos ; fi
+            if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}/gfs.$tag/00/ ; fi
+            if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}00/gfs.$tag/00/ ; fi
             if [ ! -d $indir ] ; then
                echo " indir $indir does not exist"
             else
@@ -81,14 +72,20 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
 
             aggregate="-daymean"
             tomatch2=""
+            if [ $varname == "z500" ] ; then
+               tomatch="HGT:500"; aggregate="-daymean"
+            fi
+            if [ $varname == "v200" ] ; then
+               tomatch="VGRD:200"; aggregate="-daymean"
+            fi
             if [ $varname == "u200" ] ; then
                tomatch="UGRD:200"; aggregate="-daymean"
             fi
+            if [ $varname == "v850" ] ; then
+               tomatch="VGRD:850"; aggregate="-daymean"
+            fi
             if [ $varname == "u850" ] ; then
                tomatch="UGRD:850"; aggregate="-daymean"
-            fi
-            if [ $varname == "z500" ] ; then
-               tomatch="HGT:500"; aggregate="-daymean"
             fi
             if [ $varname == "sfcr" ] ; then
                tomatch="SFCR:surface"; aggregate="-daymean"
@@ -101,7 +98,10 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
                tomatch="TMP:surface:"; aggregate="-daymean"
             fi
             if [ $varname == "tmp2m" ] ; then
-               tomatch="TMP:2 m above ground:"; aggregate="-daymean"
+               tomatch=":TMP:2 m above ground:"; aggregate="-daymean"
+            fi
+             if [ $varname == "spfh2m" ] ; then
+                tomatch="SPFH:2 m above ground:"; aggregate="-daymean"
             fi
             if [ $varname == "t2max" ] ; then
                tomatch="TMAX:2 m above ground:"; aggregate="-daymax"
@@ -129,6 +129,9 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
             if [ $varname == cloudhi ] ; then
                tomatch="CDC:hi"; aggregate="-daymean"
             fi
+            if [ $varname == cloudtot ] ; then
+               tomatch="TCDC:entire atmosphere"; aggregate="-daymean"
+            fi
                #-- Radiation
             if [ $varname == dswrf ] ; then
                tomatch="DSWRF:surface"; tomatch2="ave"; aggregate="-daymean"
@@ -144,6 +147,9 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
             fi
             if [ $varname == "ulwrftoa" ] ; then
                tomatch="ULWRF:top of atmosphere:"; aggregate="-daymean"
+            fi
+            if [ $varname == "uswrftoa" ] ; then
+               tomatch="USWRF:top of atmosphere:"; aggregate="-daymean"
             fi
                #-- Fluxes
             if [ $varname == lhtfl ] ; then
@@ -190,53 +196,55 @@ for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )); do
             if [ $varname == "soilm02m" ] ; then
                tomatch="SOIL_M:0-2 m"; aggregate="-daymean"
             fi
+            if [ $varname == "tsoil12m" ] ; then
+               tomatch="TSOIL:1-2 m"; aggregate="-daymean"
+            fi
 
             if [ -d ${indir} ] ; then
-            if [ ! -f ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2 ] ; then
 
-                     echo "aggregating $exp $tag $varname from $ftype file"
-                     #--  Extract target variable as grib2 file
+                     if [ ! -f ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2 ] ; then
 
-                      for hhh1 in {6..840..6} ; do
-                          hhh=$(printf "%03d" $hhh1)
-                          if [ $res == "Orig" ] ; then
-                             if [ $ftype == "pgrb2" ] ; then
-                                infile=${indir}/gfs.t00z.pgrb2.0p25.f${hhh}
-                             else
-                                infile=${indir}/gfs.t00z.sfluxgrbf${hhh}.grib2
-                             fi
-                             outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.Orig.f${hhh}
-                          else
-                             if [ $ftype == "pgrb2" ] ; then
-                                infile=${indir}/gfs.t00z.pgrb2.${res}.f${hhh}
-                             else
-                                infile=${indir}/gfs.t00z.flux.${res}.f${hhh}
-                             fi
-                             outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f${hhh}
-                          fi
-                          if [ -f $infile ] ; then
-                              wgrib2 -match "$tomatch" $infile -match "$tomatch2" -grib $outfile > /dev/null
-                          else
-                              echo " missing $infile : cannot continue"
-                              exit
-                          fi
-                      done
+                          echo "aggregating $exp $tag $varname"
+                          #--  Extract target variable as grib2 file
+
+                           for hhh1 in {6..840..6} ; do
+                               hhh=$(printf "%03d" $hhh1)
+                               if [ $res == "Orig" ] ; then
+                                  infile=${indir}/gfs.t00z.sfluxgrbf${hhh}.grib2
+                                  outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.Orig.f${hhh}
+                               else
+                               if [ $ftype == "upper" ] ; then
+                                    infile=${indir}/gfs.t00z.pgrb2.${res}.f${hhh}
+                                  else
+                                    infile=${indir}/gfs.t00z.flux.${res}.f${hhh}
+                                  fi
+                                  outfile=${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f${hhh}
+                               fi
+                               if [ -f $infile ] ; then
+                                   wgrib2 -match "$tomatch" $infile -match "$tomatch2" -grib $outfile > /dev/null
+                               else
+                                   echo " missing $infile : cannot continue"
+                                   exit
+                               fi
+                           done
 
                      #--  String up all hours into one file
 
-                      cat ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f??? > ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2
+                           cat ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f??? > ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2
 
                      #--  Clean up
 
-                      rm ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f???
+                           rm ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.f???
 
                      #--  Convert grib2 to nc:
 
-                      wgrib2 ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2 -netcdf ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.nc > /dev/null
-                   else
-                   echo "$exp $tag $varname already processed"
+                           wgrib2 ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.grib2 -netcdf ${whereto}/6hrly/${tag}/${varname}.${exp}.${tag}.${res}.nc > /dev/null
+
+                   else          
+                        echo "$exp $tag $varname already processed"
 
                    fi
+
                    if [ ! -f $whereto/dailymean/${tag}/${varname}.${exp}.${tag}.dailymean.${res}.nc ] ; then
 
                      #--  Convert 6-hourly to daily nc:

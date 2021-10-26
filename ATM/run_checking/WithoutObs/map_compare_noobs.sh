@@ -25,6 +25,16 @@ do
             mask)   mask=${VALUE:-"nomask"};;
             nplots) nplots=${VALUE:-3};;
             res)    res=${VALUE:-1p00};;
+            ystart)     ystart=${VALUE};;
+            yend)       yend=${VALUE};;
+            ystep)       ystep=${VALUE};;
+            mstart)     mstart=${VALUE};;
+            mend)       mend=${VALUE};;
+            mstep)      mstep=${VALUE};;
+            dstart)     dstart=${VALUE};;
+            dend)       dend=${VALUE};;
+            dstep)      dstep=${VALUE};;
+
             *)
     esac
 
@@ -63,10 +73,16 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
           ncvarModel="HGT_500mb"; multModel=1; offsetModel=0.; units="m"
        fi
        if [ "$varModel" == "icec" ] ; then
-          ncvarModel="ICEC_surface"; multModel=1; offsetModel=0.; units="%"
+          ncvarModel="ICEC_surface"; multModel=100; offsetModel=0.; units="%"
+       fi
+       if [ "$varModel" == "icetk" ] ; then
+          ncvarModel="ICETK_surface"; multModel=1; offsetModel=0.; units="m"
        fi
        if [ "$varModel" == "sfcr" ] ; then
           ncvarModel="SFCR_surface"; multModel=1; offsetModel=0.; units="m"
+       fi
+       if [ "$varModel" == "tsoil12m" ] ; then
+          ncvarModel="TSOIL_1M2mbelowground"; multModel=1; offsetModel=0.; units="K"
        fi
        if [ "$varModel" == "soilm02m" ] ; then
           ncvarModel="SOIL_M_0M2mbelowground"; multModel=1; offsetModel=0.; units="kg/m^3"
@@ -111,6 +127,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        if [ "$varModel" == "pwat" ] ; then
            ncvarModel="PWAT_entireatmosphere_consideredasasinglelayer_"; multModel=1.; offsetModel=0.; units="kg/m^2"
        fi
+       if [ "$varModel" == "cloudtot" ] ; then
+           ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
+       fi
        if [ "$varModel" == "cloudhi" ] ; then
            ncvarModel="TCDC_highcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
        fi
@@ -144,14 +163,17 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        if [ "$varModel" == "snod" ] ; then
            ncvarModel="SNOD_surface"; multModel=1.; offsetModel=0.; units="m"
        fi
+       if [ "$varModel" == "weasd" ] ; then
+           ncvarModel="WEASD_surface"; multModel=1.; offsetModel=0.; units="kg/m^2"
+       fi
 
        rm -f ${varModel}-${nameModelA}-list.txt ${varModel}-${nameModelB}-list.txt    # clean up from last time
 
        LENGTH=0
        pass=0
-       for yyyy in {2011..2018..1} ; do
-       for mm1 in {1..12..1} ; do
-       for dd1 in {1..15..1400} ; do
+       for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )) ; do
+       for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )) ; do
+       for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )) ; do
            mm=$(printf "%02d" $mm1)
            dd=$(printf "%02d" $dd1)
            tag=$yyyy$mm${dd}
@@ -532,6 +554,7 @@ cat << EOF > $nclscript
        res1@cnFillPalette        = "temp_diff_18lev"
        res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
        res1@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)   ; set levels
+       res1@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
 
        res2@cnFillPalette        = "temp_diff_18lev"
        res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -616,7 +639,7 @@ cat << EOF > $nclscript
        res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)   ; set levels
        res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
   end if
-  if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m")) then
+  if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m").or.isStrSubset("{$varModel}","tsoil")) then
       res0@cnMinLevelValF  = 220.
       res0@cnMaxLevelValF  = 310.
       res0@cnLevelSpacingF  = 10.
@@ -661,6 +684,59 @@ cat << EOF > $nclscript
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if
+  if (isStrSubset("{$varModel}","weasd")) then
+       res0@cnFillPalette="CBR_wet"
+      res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+      res0@cnLevels             = (/ 0.01, 10, 20, 30, 50,  100,  150 /)   ; set levels
+
+       res1@cnFillPalette="CBR_drywet"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)   ; set levels
+
+       res2@cnFillPalette="CBR_drywet"
+       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res2@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)   ; set levels
+  end if
+  if (isStrSubset("{$varModel}","icetk")) then
+
+      ;levs = (/0.2 ,2.6, 0.2/)
+      ;res0@cnFillPalette= "amwg256"
+      ;res0@cnLevelSelectionMode = "ManualLevels"     ; set the contour levels with the following 3 resources
+      ;res0@cnMinLevelValF  = levs(0)                      ; set the minimum contour level
+      ;res0@cnMaxLevelValF  = levs(1)                      ; set the maximum contour level
+      ;res0@cnLevelSpacingF = levs(2)                      ; set the interval between contours
+
+      ;res0@cnFillPalette="wind_17lev"
+      res0@cnFillPalette="precip4_11lev"
+      res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+      res0@cnLevels             = (/ 0.01, 0.1, 0.5,  1,  1.5 , 2., 3./)   ; set levels
+
+      res1@cnFillPalette="precip_diff_12lev"
+      res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+      res1@cnLevels             = (/   -1.,-0.5, -0.2,-0.1,-0.05, 0.05, 0.1, 0.2, 0.5 ,1.  /)   ; set levels
+
+      res2@cnFillPalette="precip_diff_12lev"
+      res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+      res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
+
+  end if
+  if (isStrSubset("{$varModel}","icec")) then
+       levs = (/0.05, 0.95, 0.1/)
+       levs = (/5., 95., 10./)
+       colormap = "amwg256"
+
+       res0@cnFillPalette = colormap
+       res0@cnLevelSelectionMode = "ManualLevels"     ; set the contour levels with the following 3 resources
+       res0@cnMinLevelValF  = levs(0)                      ; set the minimum contour level
+       res0@cnMaxLevelValF  = levs(1)                      ; set the maximum contour level
+       res0@cnLevelSpacingF = levs(2)                      ; set the interval between contours
+
+      res1@cnFillPalette="precip_diff_12lev"
+      res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+      res1@cnLevels             = (/ -50., -25., -10., -5.,-1., 1.,5., 10., 25., 50. /)   ; set levels
+   end if
+
+
 
   if (isStrSubset("{$varModel}","pwat")) then
       res0@cnFillPalette="CBR_wet"
@@ -692,7 +768,7 @@ cat << EOF > $nclscript
       res2@cnLevelSpacingF  = 20.
   end if
 
-  if (isStrSubset("{$varModel}","soil")) then
+  if (isStrSubset("{$varModel}","soilm")) then
 
       res0@cnFillPalette="CBR_wet"
       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
