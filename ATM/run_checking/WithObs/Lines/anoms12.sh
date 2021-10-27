@@ -58,18 +58,57 @@ case "$domain" in
     *)
 esac
 
-       mask=$mask
+       mask="${mask:-nomask}"
+       if [ "$varModel" == "cloudtot" ] ; then
+           ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="total_CERES"; ncvarObs="cldarea_total_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "cloudlow" ] ; then
+           ncvarModel="LCDC_lowcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="low_CERES"; ncvarObs="cldarea_low_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "cloudhi" ] ; then
+           ncvarModel="HCDC_highcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="high_CERES"; ncvarObs="cldarea_high_daily"; multObs=1.; offsetObs=0.
+       fi
+
+       if [ "$varModel" == "uswrf" ] ; then
+           ncvarModel="USWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_sw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
+
+       if [ "$varModel" == "dswrf" ] ; then
+           ncvarModel="DSWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_sw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "ulwrf" ] ; then
+           ncvarModel="ULWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_lw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "dlwrf" ] ; then
+           ncvarModel="DLWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_lw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
        if [ "$varModel" == "u850" ] ; then
           ncvarModel="UGRD_850mb"; multModel=1.; offsetModel=0.; units="m/s"
           nameObs="${reference:-era5}";  varObs="u850"; ncvarObs="UGRD_850mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
        fi
        if [ "$varModel" == "u200" ] ; then
           ncvarModel="UGRD_200mb"; multModel=1.; offsetModel=0.; units="m/s"
           nameObs="${reference:-era5}";  varObs="u200"; ncvarObs="UGRD_200mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
        fi
        if [ "$varModel" == "z500" ] ; then
           ncvarModel="HGT_500mb"; multModel=1.; offsetModel=0.; units="m"
           nameObs="${reference:-era5}";  varObs="z500"; ncvarObs="HGT_500mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
        fi
        if [ "$varModel" == "t2max" ] ; then
           ncvarModel="TMAX_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"
@@ -78,6 +117,9 @@ esac
        if [ "$varModel" == "tmp2m" ] ; then
           ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"
           nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="tmp2m.gefs12r"
+          fi
        fi
        if [ "$varModel" == "t2m_fromminmax" ] ; then
           ncvarModel="t2m_fromminmax"; multModel=1.; offsetModel=0.; units="deg K";mask="landonly"
@@ -124,7 +166,9 @@ esac
            tag=$yyyy$mm${dd}
            if [ -f $whereexp/$nameModelA/1p00/dailymean/${tag}/${varModel}.${nameModelA}.${tag}.dailymean.1p00.nc ] ; then
               if [ -f $whereexp/$nameModelB/1p00/dailymean/${tag}/${varModel}.${nameModelB}.${tag}.dailymean.1p00.nc ] ; then
-                  pathObs="$whereobs/$nameObs/1p00/dailymean"
+                  pathObs="$whereobs/$nameObs/1p00/dailymean/$tag"
+                  if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/dailymean" ; fi
+                  if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/" ; fi
                   if [ "$nameObs" == "pcp_TRMM" ] ;  then
                       pathObs="$whereobs/$nameObs/1p00"
                   fi
@@ -232,7 +276,7 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"rmse.${varModel}.${nameModelA}.${nameModelB}.${nameObs}.${season}.${ystart}-${yend}.${truelength}IC.$domain.$mask")
+  wks                          = gsn_open_wks(wks_type,"biaslines.${varModel}.${nameModelA}.${nameModelB}.${nameObs}.${season}.${ystart}-${yend}.${truelength}IC.$domain.$mask")
 
   latStart=${latS}
   latEnd=${latN}

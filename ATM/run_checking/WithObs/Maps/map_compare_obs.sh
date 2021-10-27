@@ -55,18 +55,57 @@ case "$domain" in
     "IndoChina") latS="-20"; latN="40" ;  lonW="30" ; lonE="150" ;;
     *)
 esac
+       if [ "$varModel" == "cloudtot" ] ; then
+           ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="total_CERES"; ncvarObs="cldarea_total_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "cloudlow" ] ; then
+           ncvarModel="LCDC_lowcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="low_CERES"; ncvarObs="cldarea_low_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "cloudhi" ] ; then
+           ncvarModel="HCDC_highcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="high_CERES"; ncvarObs="cldarea_high_daily"; multObs=1.; offsetObs=0.
+       fi
+
+       if [ "$varModel" == "uswrf" ] ; then
+           ncvarModel="USWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_sw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
+
+       if [ "$varModel" == "dswrf" ] ; then
+           ncvarModel="DSWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_sw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "ulwrf" ] ; then
+           ncvarModel="ULWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_lw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
+       if [ "$varModel" == "dlwrf" ] ; then
+           ncvarModel="DLWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
+           nameObs="CERESflx";  varObs="adj_atmos_lw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+       fi
 
        if [ "$varModel" == "u200" ] ; then
           ncvarModel="UGRD_200mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
           nameObs="${reference:-era5}";  varObs="u200"; ncvarObs="UGRD_200mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
        fi
        if [ "$varModel" == "u850" ] ; then
           ncvarModel="UGRD_850mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
           nameObs="${reference:-era5}";  varObs="u850"; ncvarObs="UGRD_850mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
        fi
        if [ "$varModel" == "z500" ] ; then
           ncvarModel="HGT_500mb"; multModel=1.; offsetModel=0.; units="m";mask="nomask"
           nameObs="${reference:-era5}";  varObs="z500"; ncvarObs="HGT_500mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
        fi
        if [ "$varModel" == "t2max" ] ; then
           ncvarModel="TMAX_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"; mask="landonly"
@@ -83,6 +122,9 @@ esac
        if [ "$varModel" == "tmp2m" ] ; then
           ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K";mask="nomask"
           nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="tmp2m.gefs12r"
+          fi
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
@@ -122,10 +164,10 @@ esac
 
            if [ -f $whereexp/$nameModelA/1p00/dailymean/${tag}/${varModel}.${nameModelA}.${tag}.dailymean.1p00.nc ] ; then
               if [ -f $whereexp/$nameModelB/1p00/dailymean/${tag}/${varModel}.${nameModelB}.${tag}.dailymean.1p00.nc ] ; then
-                  pathObs="$whereobs/$nameObs/1p00/dailymean"
-                  if [ ! -d $pathObs ] ; then
-                     pathObs="$whereobs/$nameObs/1p00/"
-                  fi
+                  pathObs="$whereobs/$nameObs/1p00/dailymean/$tag"
+                  if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/dailymean/" ; fi
+                  if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/" ; fi
+                  #echo $pathObs/${varObs}.day.mean.${tag}.1p00.nc
                   if [ -f $pathObs/${varObs}.day.mean.${tag}.1p00.nc ] ; then
 
                  case "${season}" in
@@ -408,6 +450,7 @@ cat << EOF > $nclscript
      res@mpShapeMode="FixedAspectFitBB"
      res@gsnPolar            = "NH"               ; specify the hemisphere
      res@mpCenterLonF = -45
+     ;res@mpCenterLonF = 180
   end if
   if (isStrSubset("$domain","SP")) then
      res@mpShapeMode="FixedAspectFitBB"

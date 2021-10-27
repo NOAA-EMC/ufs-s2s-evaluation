@@ -24,6 +24,15 @@ do
             d2) d2=${VALUE} ;;
             nplots) nplots=${VALUE:-3} ;;
             res) res=${VALUE:-1p00} ;;
+            ystart)     ystart=${VALUE};;
+            yend)       yend=${VALUE};;
+            ystep)       ystep=${VALUE};;
+            mstart)     mstart=${VALUE};;
+            mend)       mend=${VALUE};;
+            mstep)      mstep=${VALUE};;
+            dstart)     dstart=${VALUE};;
+            dend)       dend=${VALUE};;
+            dstep)      dstep=${VALUE};;
             *)
     esac
 
@@ -129,9 +138,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
 
        LENGTH=0
        pass=0
-       for yyyy in {2011..2018..1} ; do
-       for mm1 in {1..12..1} ; do
-       for dd1 in {1..15..140} ; do
+       for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )) ; do
+       for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )) ; do
+       for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )) ; do
            mm=$(printf "%02d" $mm1)
            dd=$(printf "%02d" $dd1)
            tag=$yyyy$mm${dd}

@@ -8,26 +8,30 @@
 module load intel
 module load ncl
 
-
     ystart=2011; yend=2018;  ystep=1
     mstart=1;    mend=12;    mstep=1
     dstart=1;    dend=15;     dstep=14
-    
-    hardcopy=no           # yes | no
+
+    hardcopy=yes           # yes | no
+    hardcopy=no
+
 
     exp1=ufs_p6
     exp2=ufs_p7
-   
+    
     whereexp=$noscrub/Models/
-    res=Orig
     res=1p00
-
+    res=Orig
     nplots=3
 
-# The script is  prepared to handle variables on the list below 
-    oknames=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx tsoil12m soilm02m sfcr speed spfh2m u850 v850 z500 u200 v200 cloudtot) 
 
-      for varname in tsoil12m soilm02m ; do
+# The script is  prepared to handle variables on the list below 
+    oknames=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soilm02m sfcr)
+
+    # for varname in snod pres cloudlow cloudbdry cloudmid cloudhi dswrf uswrf dlwrf ulwrf tmpsfc tmp2m t2min t2max ulwrftoa pwat icec icetk lhtfl shtfl prate; do
+     #for varname in icec icetk lhtfl shtfl ; do
+     #for varname in prate ; do
+      for varname in icec icetk ; do #cloudlow cloudhi cloudbdry icetk tmp2m tmpsfc ulwrftoa dswrf dlwrf snod ; do
 
         case "${oknames[@]}" in 
                 *"$varname"*)  ;; 
@@ -35,10 +39,11 @@ module load ncl
              echo "Exiting. To continue, please correct: unknown variable ---> $varname <---"
              exit
         esac
-        for season in DJF ; do
-            for domain in Global   ; do    
+       for domain in NH ; do
+            #for season in DJF MAM JJA SON ; do
+            for season in AllAvailable  ; do
                 echo "Attempting $domain $season $varname "
-                bash  map_compare_noobs.sh varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2 d1=0 d2=0 whereexp=$whereexp nplots=$nplots res=$res ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep
+                bash  map_compare_noobs_polar.sh varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2 d1=0 d2=0 whereexp=$whereexp nplots=$nplots res=$res ystart=$ystart yend=$yend ystep=$ystep mstart=$mstart mend=$mend mstep=$mstep dstart=$dstart dend=$dend dstep=$dstep
             done
         done
     done

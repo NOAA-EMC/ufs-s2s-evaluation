@@ -15,18 +15,20 @@ module load ncl
     
     hardcopy=no                        # yes | no
 
-    ystart=2011; yend=2018
+    ystart=2012; yend=2012
 
     mstart=1; mend=12; mstep=1
 
-    exp1=ufs_b1
-    exp2=ufs_p5
+    exp1=ufs_p6
+    exp2=ufs_p7
 
     domain=GlobalTropics                   # Global | Global50 | GlobalTropics | Nino3.4 | NAM | CONUS 
-    domain=Global20
-    domain=NP
-    season=AllAvailable               # DJF | MAM | JJA | SON | AllAvailable 
-    #season=DJF
+    #domain=Global20
+    #domain=NP
+    #season=AllAvailable               # DJF | MAM | JJA | SON | AllAvailable 
+    domain=CONUS
+    season=DJF
+    reference=gefs12r
     
 
 # The scripts are prepared to handle variables on the list below 
@@ -35,16 +37,6 @@ module load ncl
     #for varname in tmpsfc prate ulwrftoa t2min t2max; do
 
  for season in $season ; do
-     bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=tmp2m domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
-     #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=t2min domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
-     #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=t2max domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
-     #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=ulwrftoa domain=NP hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=none
-     #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=ulwrftoa domain=SP hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=none
-     #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=ulwrftoa domain=Global20 hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=none
-
-     #bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=prate domain=Global20 hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=none
-
-
-     bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel=tmpsfc domain=Global20 hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=oceanonly
+     bash biasbins.sh whereexp=$whereexp whereobs=$whereobs varModel="tmp2m" reference=$reference domain=CONUS hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2  ystart=$ystart yend=$yend mstart=$mstart mend=$mend mstep=$mstep mask=landonly
  done
 
