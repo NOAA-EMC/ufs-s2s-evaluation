@@ -24,15 +24,8 @@ do
             d2) d2=${VALUE} ;;
             nplots) nplots=${VALUE:-3} ;;
             res) res=${VALUE:-1p00} ;;
-            ystart)     ystart=${VALUE};;
-            yend)       yend=${VALUE};;
-            ystep)       ystep=${VALUE};;
-            mstart)     mstart=${VALUE};;
-            mend)       mend=${VALUE};;
-            mstep)      mstep=${VALUE};;
-            dstart)     dstart=${VALUE};;
-            dend)       dend=${VALUE};;
-            dstep)      dstep=${VALUE};;
+            startdate)    startdate=${VALUE};;
+            enddate)      enddate=${VALUE};;
             *)
     esac
 
@@ -46,8 +39,8 @@ case "$domain" in
     "Global50") latS="-50"; latN="50" ;  lonW="0" ; lonE="360" ;;
     "CONUS") latS="25"; latN="60" ;  lonW="210" ; lonE="300" ;;
     "NAM") latS="0"; latN="90" ;  lonW="180" ; lonE="360" ;;
-    "NH") latS="40"; latN="90" ;  lonW="0" ; lonE="360" ;;
-    "SH") latS="-90"; latN="-40" ;  lonW="0" ; lonE="360" ;;
+    "NH") latS="50"; latN="90" ;  lonW="0" ; lonE="360" ;;
+    "SH") latS="-90"; latN="-60" ;  lonW="0" ; lonE="360" ;;
     *)
 esac
 
@@ -100,6 +93,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        if [ "$varModel" == "cloudbdry" ] ; then
            ncvarModel="TCDC_boundarylayercloudlayer"; multModel=1.; offsetModel=0.; units="percent"; mask="nomask"
        fi
+       if [ "$varModel" == "cloudtot" ] ; then
+           ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
+       fi
        if [ "$varModel" == "ulwrftoa" ] ; then
            ncvarModel="ULWRF_topofatmosphere"; multModel=1.; offsetModel=0.; units="W/m^2"; mask="nomask"
        fi
@@ -138,12 +134,18 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
 
        LENGTH=0
        pass=0
-       for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )) ; do
-       for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )) ; do
-       for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )) ; do
-           mm=$(printf "%02d" $mm1)
-           dd=$(printf "%02d" $dd1)
-           tag=$yyyy$mm${dd}
+idate=$startdate
+monthur=()
+
+# Days with output: monthur
+
+while [ $idate -le $enddate ] ; do
+   monthur+=( "$idate" )
+   idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
+done
+
+# Loop through days with output
+for tag in ${monthur[@]} ; do
            if [ -f $whereexp/$nameModelA/${res}/dailymean/${tag}/${varModel}.${nameModelA}.${tag}.dailymean.${res}.nc ] ; then
               if [ -f $whereexp/$nameModelB/${res}/dailymean/${tag}/${varModel}.${nameModelB}.${tag}.dailymean.${res}.nc ] ; then
 
@@ -195,8 +197,6 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
 
               fi
            fi
-       done
-       done
        done
 
    truelength=$LENGTH
@@ -375,7 +375,8 @@ cat << EOF > $nclscript
   res@gsnPolar            = "$domain"               ; specify the hemisphere
   res@mpMinLatF           = $latS                 ; specify min lat
   res@mpMaxLatF           = $latN                 ; specify min lat
-  res@mpCenterLonF = -45
+  ;res@mpCenterLonF = -45
+  res@mpCenterLonF = 180
 
   res@cnFillOn             = True               ; turns on the color
   res@mpFillOn             = False              ; turns off continent gray
@@ -420,12 +421,21 @@ cat << EOF > $nclscript
 
   if (isStrSubset("{$varModel}","icetk")) then
       res0@cnFillPalette="CBR_wet"
+       res0@cnFillPalette="prcp_1"
+       res0@cnFillPalette="precip2_17lev"
       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-      res0@cnLevels             = (/ 0.01, 0.1, 0.2, 0.3, 0.5,  1,  1.5 /)   ; set levels
+      ;res0@cnLevels             = (/ 0.01, 0.1, 0.2, 0.3, 0.5,  1,  1.5, 2.,3. /)   ; set levels
+      res0@cnLevels             = (/ 0.01, 0.1, 0.2, 0.3, 0.5,  1.,1.5, 2.,3. /)   ; set levels
+
 
       res1@cnFillPalette="precip_diff_12lev"
+      res1@cnFillPalette="NCV_jaisnd"
+      res1@cnFillPalette="BlAqGrWh2YeOrReVi22"
+      res1@cnFillPalette="ViBlGrWhYeOrRe"
+
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res1@cnLevels             = (/   -1.,-0.5, -0.2,-0.1,-0.05, 0.05, 0.1, 0.2, 0.5 ,1.  /)   ; set levels
+      ;res1@cnLevels             = (/   -1.,-0.5, -0.2,-0.1, 0.1, 0.2, 0.5 ,1.  /)   ; set levels
 
       res2@cnFillPalette="precip_diff_12lev"
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -601,15 +611,20 @@ cat << EOF > $nclscript
       res2@cnLevelSpacingF  = 20.
   end if
   if (isStrSubset("{$varModel}","snow").or.isStrSubset("{$varModel}","icec")) then
-       levs = (/0.05, 0.95, 0.1/)
-       levs = (/5., 95., 10./)
-       colormap = "amwg256"
+       ;levs = (/0.05, 0.95, 0.1/)
+       levs = (/0.5, 95., 10./)
        
+       colormap = "amwg256"
        res0@cnFillPalette = colormap
        res0@cnLevelSelectionMode = "ManualLevels"     ; set the contour levels with the following 3 resources
        res0@cnMinLevelValF  = levs(0)                      ; set the minimum contour level
        res0@cnMaxLevelValF  = levs(1)                      ; set the maximum contour level
        res0@cnLevelSpacingF = levs(2)                      ; set the interval between contours
+
+       res0@cnFillPalette="precip_diff_12lev"
+       res0@cnFillPalette="prcp_1"
+       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res0@cnLevels             = (/ 1.e-15,  1, 5, 10, 20, 40, 60, 95/)   ; set levels
 
       res1@cnFillPalette="precip_diff_12lev"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -637,6 +652,7 @@ cat << EOF > $nclscript
        res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if 
   ;res1@mpGeophysicalLineThicknessF=0.3
+  res1@mpGeophysicalLineThicknessF=2.
   
 
 

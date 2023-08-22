@@ -25,20 +25,12 @@ do
             mask)   mask=${VALUE:-"nomask"};;
             nplots) nplots=${VALUE:-3};;
             res)    res=${VALUE:-1p00};;
-            ystart)     ystart=${VALUE};;
-            yend)       yend=${VALUE};;
-            ystep)       ystep=${VALUE};;
-            mstart)     mstart=${VALUE};;
-            mend)       mend=${VALUE};;
-            mstep)      mstep=${VALUE};;
-            dstart)     dstart=${VALUE};;
-            dend)       dend=${VALUE};;
-            dstep)      dstep=${VALUE};;
+            startdate)      startdate=${VALUE};;
+            enddate)      enddate=${VALUE};;
 
             *)
     esac
 
-    echo $nplots
 
 
 done
@@ -51,12 +43,31 @@ case "$domain" in
     "Global60") latS="-60"; latN="90" ;  lonW="0" ; lonE="360" ;;
     "CONUS") latS="25"; latN="60" ;  lonW="210" ; lonE="300" ;;
     "NAM") latS="0"; latN="90" ;  lonW="180" ; lonE="360" ;;
+    #"NAM") latS="0"; latN="90" ;  lonW="200" ; lonE="320" ;;
     "IndoChina") latS="-20"; latN="40" ;  lonW="30" ; lonE="150" ;;
     *)
 esac
 
 
 nameModelBA=${nameModelB}_minus_${nameModelA}
+       if [ "$varModel" == "ustar" ] ; then
+          ncvarModel="FRICV_surface"; multModel=1; offsetModel=0.; units="m/s"
+       fi
+       if [ "$varModel" == "gust" ] ; then
+          ncvarModel="GUST_surface"; multModel=1; offsetModel=0.; units="m/s"
+       fi
+       if [ "$varModel" == "CAPE" ] ; then
+          ncvarModel="CAPE"; multModel=1; offsetModel=0.; units="J/kg"
+       fi
+       if [ "$varModel" == "CAPE" ] ; then
+          ncvarModel="CAPE"; multModel=1; offsetModel=0.; units="J/kg"
+       fi
+       if [ "$varModel" == "albdo" ] ; then
+          ncvarModel="ALBDO"; multModel=1; offsetModel=0.; units="%"
+       fi
+       if [ "$varModel" == "hpbl" ] ; then
+          ncvarModel="HPBL"; multModel=1; offsetModel=0.; units="m"
+       fi
        if [ "$varModel" == "u200" ] ; then
           ncvarModel="UGRD_200mb"; multModel=1; offsetModel=0.; units="m/s"
        fi
@@ -71,6 +82,12 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        fi
        if [ "$varModel" == "z500" ] ; then
           ncvarModel="HGT_500mb"; multModel=1; offsetModel=0.; units="m"
+       fi
+       if [ "$varModel" == "rh850" ] ; then
+          ncvarModel="RH_850mb"; multModel=1; offsetModel=0.; units="%"
+       fi
+       if [ "$varModel" == "rh1000" ] ; then
+          ncvarModel="RH_1000mb"; multModel=1; offsetModel=0.; units="%"
        fi
        if [ "$varModel" == "icec" ] ; then
           ncvarModel="ICEC_surface"; multModel=100; offsetModel=0.; units="%"
@@ -87,6 +104,14 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        if [ "$varModel" == "soilm02m" ] ; then
           ncvarModel="SOIL_M_0M2mbelowground"; multModel=1; offsetModel=0.; units="kg/m^3"
        fi
+
+       if [ "$varModel" == "tsoil010cm" ] ; then
+          ncvarModel="TSOIL_0M0D1mbelowground"; multModel=1; offsetModel=0.; units="K"
+       fi
+       if [ "$varModel" == "soilw010cm" ] ; then
+          ncvarModel="SOILW_0M0D1mbelowground"; multModel=100.; offsetModel=0.; units="Percent"
+       fi
+
        if [ "$varModel" == "pres" ] ; then
           ncvarModel="PRES_surface"; multModel=0.01; offsetModel=0.; units="mb"
        fi
@@ -98,6 +123,7 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        fi
        if [ "$varModel" == "speed" ] ; then
           ncvarModel="spd10"; multModel=1.; offsetModel=0.; units="m/s"
+          ncvarModel="UGRD_10maboveground"; multModel=1.; offsetModel=0.; units="m/s"
        fi
        if [ "$varModel" == "t2max" ] ; then
           ncvarModel="TMAX_2maboveground"; multModel=1.; offsetModel=0.; units="deg K"
@@ -113,16 +139,28 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
-          ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
        fi
        if [ "$varModel" == "shtfl" ] ; then
           ncvarModel="SHTFL_surface"; multModel=1.; offsetModel=0.; units="W/m^2"
        fi
+       if [ "$varModel" == "gflux" ] ; then
+          ncvarModel="GFLUX_surface"; multModel=1.; offsetModel=0.; units="W/m^2"
+       fi
+       if [ "$varModel" == "sfexc" ] ; then
+          ncvarModel="SFEXC_surface"; multModel=1.; offsetModel=0.; units="(kg/m^3)(m/s)"
+       fi
        if [ "$varModel" == "prate" ] ; then
           ncvarModel="PRATE_surface"; multModel=86400.; offsetModel=0.; units="mm/day"
        fi
+       if [ "$varModel" == "cprat" ] ; then
+          ncvarModel="CPRAT_surface"; multModel=86400.; offsetModel=0.; units="mm/day"
+       fi
        if [ "$varModel" == "lhtfl" ] ; then
           ncvarModel="LHTFL_surface"; multModel=0.03456; offsetModel=0.; units="mm/day"
+          ncvarModel="LHTFL_surface"; multModel=1; offsetModel=0.; units="W/m^2"
+       fi
+       if [ "$varModel" == "sbsno" ] ; then
+          ncvarModel="SBSNO_surface"; multModel=1; offsetModel=0.; units="W/m^2"
        fi
        if [ "$varModel" == "pwat" ] ; then
            ncvarModel="PWAT_entireatmosphere_consideredasasinglelayer_"; multModel=1.; offsetModel=0.; units="kg/m^2"
@@ -131,13 +169,13 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
            ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
        fi
        if [ "$varModel" == "cloudhi" ] ; then
-           ncvarModel="TCDC_highcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           ncvarModel="HCDC_highcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
        fi
        if [ "$varModel" == "cloudmid" ] ; then
-        ncvarModel="TCDC_middlecloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+        ncvarModel="MCDC_middlecloudlayer"; multModel=1.; offsetModel=0.; units="percent"
        fi
        if [ "$varModel" == "cloudlow" ] ; then
-           ncvarModel="TCDC_lowcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           ncvarModel="LCDC_lowcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
        fi
        if [ "$varModel" == "cloudbdry" ] ; then
            ncvarModel="TCDC_boundarylayercloudlayer"; multModel=1.; offsetModel=0.; units="percent"
@@ -171,12 +209,20 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
 
        LENGTH=0
        pass=0
-       for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )) ; do
-       for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )) ; do
-       for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )) ; do
-           mm=$(printf "%02d" $mm1)
-           dd=$(printf "%02d" $dd1)
-           tag=$yyyy$mm${dd}
+idate=$startdate
+monthur=()
+
+# Days with output: monthur
+
+while [ $idate -le $enddate ] ; do
+   monthur+=( "$idate" )
+   #idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
+   idate=$(date -d "$idate + 1 days" "+%C%y%m%d")
+done
+
+# Loop through days with output
+for tag in ${monthur[@]} ; do
+mm1=${tag:4:2}
            if [ -f $whereexp/$nameModelA/${res}/dailymean/${tag}/${varModel}.${nameModelA}.${tag}.dailymean.${res}.nc ] ; then
               if [ -f $whereexp/$nameModelB/${res}/dailymean/${tag}/${varModel}.${nameModelB}.${tag}.dailymean.${res}.nc ] ; then
 
@@ -229,8 +275,6 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
               fi
            fi
        done
-       done
-       done
 
    echo "A total of $LENGTH ICs are being processed"
    truelength=$LENGTH
@@ -269,7 +313,11 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"diffmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${season}.${startname}.d${d1p1}-d${d2p1}.$domain")
+      if ("$varModel" .eq. "snow") then
+          wks  = gsn_open_wks(wks_type,"diffmaps.${varModel}c.${nameModelB}.vs.${nameModelA}.${season}.${startname}.d${d1p1}-d${d2p1}.$domain")
+      else 
+         wks  = gsn_open_wks(wks_type,"diffmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${season}.${startname}.d${d1p1}-d${d2p1}.$domain")
+      end if
 
   latStart=${latS}
   latEnd=${latN}
@@ -281,6 +329,10 @@ cat << EOF > $nclscript
      lonEnd=390
   end if
 
+; if isStrSubset("$domain","Global") then
+;     lonStart=180
+;     lonEnd=540
+;  end if
 
   ${nameModelA}_list=systemfunc ("awk  '{print} NR==${LENGTH}{exit}' ${varModel}-${nameModelA}-list.txt }") 
   ${nameModelB}_list=systemfunc ("awk  '{print} NR==${LENGTH}{exit}' ${varModel}-${nameModelB}-list.txt }") 
@@ -288,7 +340,7 @@ cat << EOF > $nclscript
   ${nameModelA}_add = addfiles (${nameModelA}_list, "r")   ; note the "s" of addfile
   ${nameModelB}_add = addfiles (${nameModelB}_list, "r")   
 
-  maskMod=addfile("$whereexp/${nameModelA}/${res}/dailymean/20120101/land.${nameModelA}.20120101.dailymean.${res}.nc", "r")
+  maskMod=addfile("$whereexp/${nameModelB}/${res}/dailymean/20191203/land.${nameModelB}.20191203.dailymean.${res}.nc", "r")
   masker=maskMod->LAND_surface(0,{${latS}:${latN}},{${lonW}:${lonE}})
   masker=where(masker.ne.1,masker,masker@_FillValue)
 
@@ -309,6 +361,10 @@ cat << EOF > $nclscript
 
   ${nameModelA}_fld = ${nameModelA}_add[:]->\$nameA(4)\$
   ${nameModelB}_fld = ${nameModelB}_add[:]->\$nameB(4)\$
+
+; IF THERE ARE MORE THAN ONE VARIABLES IN HTE FILE USE THE STUFF BELOW: 
+;  ${nameModelA}_fld = ${nameModelA}_add[:]->$ncvarModel
+;  ${nameModelB}_fld = ${nameModelB}_add[:]->$ncvarModel
 
 
 ;--- Provision for one of the models being a shorter run 
@@ -417,8 +473,8 @@ cat << EOF > $nclscript
          
    
 
-  ${nameModelA}_mean@long_name=${nameModelA}_mean@long_name + " " + "${nameModelA}" +"; mean=" + ${nameModelA}_aave
-  ${nameModelB}_mean@long_name=${nameModelB}_mean@long_name + " " + "${nameModelB}" +"; mean=" + ${nameModelB}_aave
+  ${nameModelA}_mean@long_name=${nameModelA}_mean@long_name + " " + "${nameModelA}" +"; mean=" + ${nameModelA}_aave + "; max=" + max(${nameModelA}_mean); 
+  ${nameModelB}_mean@long_name=${nameModelB}_mean@long_name + " " + "${nameModelB}" +"; mean=" + ${nameModelB}_aave + "; max=" + max(${nameModelB}_mean);
   ;${nameModelBA}_diff@long_name="Difference" +"; mean=" + ${nameModelBA}_aave + "; rmsd=" + ${nameModelBA}_rmsd
   ;${nameModelBA}_diff@long_name="Difference" +"; mean=" + ${nameModelBA}_aave 
   ${nameModelBA}_diff@long_name="${nameModelB} minus ${nameModelA}"+"; mean=" + ${nameModelBA}_aave + "; min=" + amin + "; max=" + amax
@@ -470,7 +526,25 @@ cat << EOF > $nclscript
       res2=res1
 
   end if
-  if (isStrSubset("{$varModel}","850")) then
+  if (isStrSubset("{$varModel}","rh")) then
+      res0@cnMinLevelValF  = -12.
+      res0@cnMaxLevelValF  = 12.
+      res0@cnLevelSpacingF  = 2.
+
+;      res1@cnMinLevelValF  = -30.
+;      res1@cnMaxLevelValF  = 30.
+;      res1@cnLevelSpacingF  = 5.
+      res1@cnFillPalette="precip_diff_12lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)   ; set levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*30.   ; set levels
+       res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
+
+
+      res2=res1
+
+  end if
+  if (isStrSubset("{$varModel}","u850")) then
       res0@cnMinLevelValF  = -12.
       res0@cnMaxLevelValF  = 12.
       res0@cnLevelSpacingF  = 2.
@@ -517,8 +591,56 @@ cat << EOF > $nclscript
       res3=res0
       res3@cnLevels :=(/-1.e-4,-8e-5,-6e-5,-4e-5,-2e-5,2.e-5,4e-5,6e-5,8e-5,1e-4/)
   end if
+  if (isStrSubset("{$varModel}","hpbl")) then
+      res0@cnFillPalette="WhiteBlueGreenYellowRed"
 
-  if (isStrSubset("{$varModel}","cloud")) then
+      res0@cnMinLevelValF  = 0.
+      res0@cnMaxLevelValF  = 1800.
+      res0@cnLevelSpacingF  = 200.
+
+      res1@cnFillPalette        = "temp_diff_18lev"
+;      res1@cnMinLevelValF  = -400.
+;      res1@cnMaxLevelValF  = 400.
+;      res1@cnLevelSpacingF  = 50.
+
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -400., -200., -100., -50., -20., 20., 50. ,100. ,200. , 400./)   ; set levels
+
+      res2@cnFillPalette        = "temp_diff_18lev"
+      res2@cnMinLevelValF  = -400.
+      res2@cnMaxLevelValF  = 400.
+      res2@cnLevelSpacingF  = 50.
+  end if
+
+  if (isStrSubset("{$varModel}","CAPE")) then
+       res0@cnFillPalette = "BlGrYeOrReVi200"
+      res0@cnFillPalette="WhiteBlueGreenYellowRed"
+       res0@cnMinLevelValF  = 100.
+       res0@cnMaxLevelValF  = 1100.
+       res0@cnLevelSpacingF  = 100.
+
+       res1@cnFillPalette = "precip_diff_12lev"
+       res1@cnFillPalette        = "temp_diff_18lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       ;res1@cnLevels             = (/ -300., -200., -100.,-50.,-10., 10. ,50. ,100. ,200. , 300./)   ; set levels
+       res1@cnLevels             = (/ -1000., -500., -200.,-50., 50.  ,200. ,500. , 1000./)   ; set levels
+       ;res1@cnFillColors         = (/ 11,  10,   9,    8,   7,    6,    5,  4,  3,    2,  1/)  ; set the colors to be used
+       ;res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
+       res2=res1
+  end if 
+
+  if (isStrSubset("{$varModel}","ustar")) then
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -3., -2., -1.,-0.5,-0.1, 0.1 ,0.5 ,1. ,2. , 3./)*0.1   ; set levels
+       res2=res1
+  end if 
+  if (isStrSubset("{$varModel}","gust")) then
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -3., -2., -1.,-0.5,-0.1, 0.1 ,0.5 ,1. ,2. , 3./)*2.   ; set levels
+       res2=res1
+  end if 
+
+  if (isStrSubset("{$varModel}","cloud").or.isStrSubset("{$varModel}","soilw").or.isStrSubset("{$varModel}","albdo")) then
        cmap=read_colormap_file("MPL_gnuplot")
        cmap = cmap(::-1,:)
 ;       res0@cnFillPalette = cmap
@@ -546,10 +668,10 @@ cat << EOF > $nclscript
        res2@cnFillColors         = (/ 11,  10,   9,    8,   7,  6,  5,  4,  3,    2,  1/)  ; set the colors to be used
   end if
 
-  if (isStrSubset("{$varModel}","shtfl")) then
-       res0@cnMinLevelValF  = -40.
-       res0@cnMaxLevelValF  = 120.
-       res0@cnLevelSpacingF  = 20.
+  if (isStrSubset("{$varModel}","htfl")) then
+
+       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res0@cnLevels             = (/ -100., -40., -20., -10.,-1.,-0.1, 0.1 ,1. ,10. ,20. , 40., 100./)   ; set levels
 
        res1@cnFillPalette        = "temp_diff_18lev"
        res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -560,16 +682,59 @@ cat << EOF > $nclscript
        res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
        res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if
+  if (isStrSubset("{$varModel}","gflux")) then
+
+       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res0@cnLevels             = (/ -100., -40., -20., -10.,-1.,-0.1, 0.1 ,1. ,10. ,20. , 40., 100./)   ; set levels
+
+       res1@cnFillPalette        = "temp_diff_18lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)   ; set levels
+       res1@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
+
+       res2@cnFillPalette        = "temp_diff_18lev"
+       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
+  end if
+  if (isStrSubset("{$varModel}","sbsno")) then
+      res0@cnMinLevelValF  = -5.
+       res0@cnMaxLevelValF  = 5. 
+       res0@cnLevelSpacingF  = 1. 
+
+       res1@cnFillPalette        = "temp_diff_18lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 , 1. ,2. ,3. , 5./)   ; set levels
+       
+       res2=res1
+
+  end if
+  if (isStrSubset("{$varModel}","sfexc")) then
+      res0@cnFillPalette="sunshine_9lev"
+      res0@cnFillPalette="WhiteBlueGreenYellowRed"
+      res0@cnMinLevelValF  = 0.
+       res0@cnMaxLevelValF  = 0.1 
+       res0@cnLevelSpacingF  = 0.01 
+
+       res1@cnFillPalette        = "temp_diff_18lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 , 1. ,2. ,3. , 5./)*0.01   ; set levels
+       
+       res2=res1
+
+  end if
        
   if (isStrSubset("{$varModel}","t2min")) then
       res0@cnLevelSelectionMode = "ManualLevels"   ; set explicit contour levels
-      res0@cnMinLevelValF  = 270.
-      res0@cnMaxLevelValF  = 300.
-      res0@cnLevelSpacingF  = 2.5
+      res0@cnMinLevelValF  = 220.
+      res0@cnMaxLevelValF  = 320.
+      res0@cnLevelSpacingF  = 10.
 
-      res1@cnFillPalette        = "temp_diff_18lev"
+      ;res1@cnFillPalette        = "temp_diff_18lev"
+      ;res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+      ;res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
+      res1@cnFillPalette        = "BlueDarkRed18"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-      res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
+      res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
 
       res2@cnFillPalette        = "temp_diff_18lev"
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -577,13 +742,17 @@ cat << EOF > $nclscript
   end if 
   if (isStrSubset("{$varModel}","t2max")) then
       res0@cnLevelSelectionMode = "ManualLevels"   ; set explicit contour levels
-      res0@cnMinLevelValF  = 280.
-      res0@cnMaxLevelValF  = 310.
-      res0@cnLevelSpacingF  = 2.5
+      res0@cnMinLevelValF  = 220.
+      res0@cnMaxLevelValF  = 320.
+      res0@cnLevelSpacingF  = 10.
 
-      res1@cnFillPalette        = "temp_diff_18lev"
+;      res1@cnFillPalette        = "temp_diff_18lev"
+;      res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+;      res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
+
+      res1@cnFillPalette        = "BlueDarkRed18"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-      res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
+      res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
 
       res2@cnFillPalette        = "temp_diff_18lev"
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -594,23 +763,23 @@ cat << EOF > $nclscript
 
   if (isStrSubset("{$varModel}","speed")) then
       res0@cnMinLevelValF  = 0.
-      res0@cnMaxLevelValF  = 2.
-      res0@cnLevelSpacingF  = 0.2
+      res0@cnMaxLevelValF  = 30.
+      res0@cnLevelSpacingF  = 2.5
 
-      res3=res0
-      res3@cnMinLevelValF  = -0.2
-      res3@cnMaxLevelValF  = 0.2
-      res3@cnLevelSpacingF  = 0.05
+      res1=res0
+      res1@cnMinLevelValF  = -3
+      res1@cnMaxLevelValF  = 3
+      res1@cnLevelSpacingF  = 0.5
   end if
 
   if (isStrSubset("{$varModel}","u10")) then
       res0@cnMinLevelValF  = -10.
       res0@cnMaxLevelValF  = 10.
-      res0@cnLevelSpacingF  = 1.
+      res0@cnLevelSpacingF  = 2.
 
-      res1@cnMinLevelValF  = -2.
-      res1@cnMaxLevelValF  = 2.
-      res1@cnLevelSpacingF  = 0.1
+      res1@cnMinLevelValF  = -5.
+      res1@cnMaxLevelValF  = 5.
+      res1@cnLevelSpacingF  = 0.5
 
       res2=res1
 
@@ -637,6 +806,7 @@ cat << EOF > $nclscript
        res1@cnFillPalette="precip_diff_12lev"
        res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
        res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)   ; set levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*3   ; set levels
        res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
   end if
   if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m").or.isStrSubset("{$varModel}","tsoil")) then
@@ -644,19 +814,23 @@ cat << EOF > $nclscript
       res0@cnMaxLevelValF  = 310.
       res0@cnLevelSpacingF  = 10.
 
-      res1@cnFillPalette        = "temp_diff_18lev"
-      res1@cnFillPalette        = "hotcold_18lev"
-      res1@cnFillPalette        = "nrl_sirkes"
-      res1@cnFillPalette        = "BlueDarkRed18"
+      ;res1@cnFillPalette        = "nrl_sirkes"
+      ;res1@cnFillPalette        = "hotcold_18lev"
+      ;res1@cnFillPalette        = "BlueDarkRed18"
+      ;res1@cnFillPalette        = "temp_diff_18lev"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
+
+ ;     res1@cnFillPalette        = "temp_diff_18lev"
+ ;     res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+ ;     res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
 
       res2@cnFillPalette        = "temp_diff_18lev"
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if
 
-  if (isStrSubset("{$varModel}","prate").or.isStrSubset("{$varModel}","lhtfl")) then
+  if (isStrSubset("{$varModel}","prat").or.isStrSubset("{$varModel}","waterlhtfl")) then
       res0@cnFillPalette="CBR_wet"
       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res0@cnLevels             = (/ 0.01, 0.1, 0.2, 0.5,  1,   2, 4,   8, 16, 32  /)   ; set levels
@@ -690,12 +864,16 @@ cat << EOF > $nclscript
       res0@cnLevels             = (/ 0.01, 10, 20, 30, 50,  100,  150 /)   ; set levels
 
        res1@cnFillPalette="CBR_drywet"
+      res1@cnFillPalette="precip_diff_12lev"
        res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-       res1@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)   ; set levels
+       res1@cnLevels             = (/ -50., -30., -20.,-10.,-1., 1. ,10. ,20. ,30. , 50./)*20.   ; set levels
+      res1@cnLevels             = (/   -1.,-0.5, -0.2,-0.1,-0.05, 0.05, 0.1, 0.2, 0.5 ,1.  /)*1000.   ; set levels
 
        res2@cnFillPalette="CBR_drywet"
+      res2@cnFillPalette="precip_diff_12lev"
        res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-       res2@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)   ; set levels
+       res2@cnLevels             = (/ -50., -30., -20.,-10.,-5., 5. ,10. ,20. ,30. , 50./)*20.   ; set levels
+      res2@cnLevels             = (/   -1.,-0.5, -0.2,-0.1,-0.05, 0.05, 0.1, 0.2, 0.5 ,1.  /)*1000.   ; set levels
   end if
   if (isStrSubset("{$varModel}","icetk")) then
 
@@ -805,7 +983,7 @@ cat << EOF > $nclscript
        res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if 
 
-  ;res1@mpGeophysicalLineThicknessF=0.3
+  res1@mpGeophysicalLineThicknessF=2
 
 
 
@@ -813,6 +991,9 @@ cat << EOF > $nclscript
 
   panelopts                   = True
   panelopts@gsnPanelMainString = "${varModel}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
+      if ("$varModel" .eq. "snow") then
+         panelopts@gsnPanelMainString = "snowc, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
+      end if
   panelopts@amJust   = "TopLeft"
   panelopts@gsnOrientation    = "landscape"
   panelopts@gsnPanelLabelBar  = False
