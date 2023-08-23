@@ -152,13 +152,13 @@ esac
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
-          nameObs="sst_OSTIA";  varObs="sst-OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
+          nameObs="sst_OSTIA";  varObs="sst_OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
        fi
        if [ "$varModel" == "sst" ] ; then
           varModel="tmpsfc"
           varModel="sst"
           ncvarModel="FDNSSTMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
-          nameObs="sst_OSTIA";  varObs="sst-OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
+          nameObs="sst_OSTIA";  varObs="sst_OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
        fi
        if [ "$varModel" == "prate" ] ; then
           ncvarModel="PRATE_surface"; multModel=86400.; offsetModel=0.; units="mm/day"; mask="landonly"

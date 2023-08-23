@@ -19,15 +19,15 @@ enddate=20200830
         whereexp=$exp_root
         whereobs=$obs_root
 
-        exp_old=GFSv16
-        exp_new=ufs_hr1
+        exp_old=ufs_hr1
+        exp_new=ufs_hr2_test
 
         res=1p00  # this is the only available resolution for bias comparisons
 
     # Other specitications
 
         hardcopy=yes              # Valid choices are yes no      
-        hardcopy=no              # Valid choices are yes no     
+        #hardcopy=no              # Valid choices are yes no     
 
         nplots=3      # Valid choices are 9 or 3 or 1; 
                       # "9" plots full fields for obs, exp_old, exp_new AND bias for exp_old, exp_new AND  difference exp_new - exp_old
@@ -50,20 +50,21 @@ enddate=20200830
 
 
         declare -a seasonlist=( "AllAvailable" )                    # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
-        declare -a seasonlist=( "DJF" "JJA" )                    # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
+        #declare -a seasonlist=( "DJF" "JJA" )                    # Valid choices are "DJF" "MAM" "JJA" "SON" "AllAvailable"
 
-        declare -a varlist=("cloudtot" "t2min" "t2max" "ulwrf" "dlwrf" "uswrf" "dswrf" "prate" "ulwrftoa" )
+        declare -a varlist=("sst" "cloudtot" "t2min" "t2max" "ulwrf" "dlwrf" "uswrf" "dswrf" "prate" "ulwrftoa" )
 
         for season in ${seasonlist[@]} ; do
             for varname in ${varlist[@]}; do
+
+                day1=1; day2=1
+                echo "using $mapscript $day1 to $day2 for $varname"
+                bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname reference=$reference domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new startdate=$startdate enddate=$enddate  d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots plotdomain=$plotdomain
 
                 day1=1; day2=16
                 echo "using $mapscript $day1 to $day2 for $varname"
                 bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname reference=$reference domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new startdate=$startdate enddate=$enddate  d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots plotdomain=$plotdomain
 
-                #day1=8; day2=14
-                #echo "using $mapscript $day1 to $day2 for $varname"
-                #bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname reference=$reference domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new startdate=$startdate enddate=$enddate  d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots plotdomain=$plotdomain
 
 done
  

@@ -10,7 +10,7 @@
 #SBATCH -J p8
 
 module load hpss
-rundir=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/ufs_hr1/
+rundir=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/ufs_hr2/
 cd $rundir
 
 # Winter set
@@ -32,8 +32,8 @@ done
 
 for tag in ${monthur[@]} ; do
 
-     base=/NCEPDEV/emc-climate/5year/Jiande.Wang/WCOSS2/HR1/Winter/${tag}00
-     #base=/NCEPDEV/emc-climate/5year/Jiande.Wang/WCOSS2/HR1/Summer/${tag}00
+     base=/NCEPDEV/emc-climate/5year/Jiande.Wang/WCOSS2/HR2/Winter/${tag}00
+     #base=/NCEPDEV/emc-climate/5year/Jiande.Wang/WCOSS2/HR2/Summer/${tag}00
 
      hsi ls $base  > /dev/null 2>&1 #list and redirect to trash; all we care about is the comand status below
      base_exist=$?   # status is 0 if the directory on HPSS exist

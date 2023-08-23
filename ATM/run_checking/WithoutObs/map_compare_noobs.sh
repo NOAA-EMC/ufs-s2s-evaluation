@@ -140,6 +140,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
        fi
+       if [ "$varModel" == "sst" ] ; then
+          ncvarModel="FDNSSTMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
+       fi
        if [ "$varModel" == "shtfl" ] ; then
           ncvarModel="SHTFL_surface"; multModel=1.; offsetModel=0.; units="W/m^2"
        fi
@@ -732,7 +735,7 @@ cat << EOF > $nclscript
       ;res1@cnFillPalette        = "temp_diff_18lev"
       ;res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       ;res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
-      res1@cnFillPalette        = "BlueDarkRed18"
+      ;res1@cnFillPalette        = "BlueDarkRed18"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
 
@@ -750,7 +753,7 @@ cat << EOF > $nclscript
 ;      res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
 ;      res1@cnLevels             = (/ -5., -3., -2.,-1.,-0.5, 0.5 ,1. ,2. ,3. , 5./)   ; set levels
 
-      res1@cnFillPalette        = "BlueDarkRed18"
+     ; res1@cnFillPalette        = "BlueDarkRed18"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
 
@@ -809,7 +812,7 @@ cat << EOF > $nclscript
        res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*3   ; set levels
        res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
   end if
-  if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m").or.isStrSubset("{$varModel}","tsoil")) then
+  if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m").or.isStrSubset("{$varModel}","tsoil").or.isStrSubset("{$varModel}","sst")) then
       res0@cnMinLevelValF  = 220.
       res0@cnMaxLevelValF  = 310.
       res0@cnLevelSpacingF  = 10.

@@ -15,8 +15,8 @@ enddate=20200830
     hardcopy=yes           # yes | no
     hardcopy=no           # yes | no
 
-    exp1=GFSv16
-    exp2=ufs_hr1
+    exp1=ufs_hr1
+    exp2=ufs_hr2_test
    
     whereexp=$noscrub1/Models/
 
@@ -27,10 +27,11 @@ enddate=20200830
     nplots=3
 
 # The script is  prepared to handle variables on the list below 
-    oknames=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10  tsoil12m soilm02m spfh2m u850 z500 u200  cloudtot sbsno tsoil010cm soilw010cm gflux albdo hpbl CAPE ustar gust rh850 rh1000)  
+    oknames=(land sst tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10  tsoil12m soilm02m spfh2m u850 z500 u200  cloudtot sbsno tsoil010cm soilw010cm gflux albdo hpbl CAPE ustar gust rh850 rh1000)  
 
       for season in  DJF JJA ; do
-        for varname in  tmp2m tmpsfc t2min t2max  icetk pwat icec cloudtot cloudbdry cloudlow cloudmid cloudhi spfh2m hpbl snod weasd tsoil010cm soilw010cm lhtfl shtfl dlwrf dswrf ulwrf uswrf ulwrftoa prate CAPE u850 z500 u200 pres albdo ; do 
+        #for varname in  t2min t2max tmpsfc tmp2m  icetk pwat icec cloudtot cloudbdry cloudlow cloudmid cloudhi spfh2m hpbl snod weasd tsoil010cm soilw010cm lhtfl shtfl dlwrf dswrf ulwrf uswrf ulwrftoa prate CAPE u850 z500 u200 pres albdo ; do 
+        for varname in sst ; do
         case "${oknames[@]}" in 
                 *"$varname"*)  ;; 
                 *)
@@ -41,7 +42,8 @@ enddate=20200830
                 echo "Attempting $domain $season $varname "
 
                 d1=0; d2=15
-
+                bash  map_compare_noobs.sh varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2 d1=$d1 d2=$d2 whereexp=$whereexp nplots=$nplots res=$res startdate=$startdate enddate=$enddate
+                d1=0; d2=0
                 bash  map_compare_noobs.sh varModel=$varname domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp1 nameModelB=$exp2 d1=$d1 d2=$d2 whereexp=$whereexp nplots=$nplots res=$res startdate=$startdate enddate=$enddate
 
                 done
