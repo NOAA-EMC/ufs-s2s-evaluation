@@ -31,8 +31,7 @@
 
     # Specify list of variables to preprocess (turn from 6-hourly grib2 into a 35-day series of daily netcdf); 
         declare -a varlist_upper=("CAPE" "u850" "z500" "u200" "rh850" "rh1000")
-        declare -a varlist_surface=("land" "sst" "tmpsfc" "tmp2m" "t2min" "t2max" "ulwrftoa" "snow" "snod" "weasd" "dswrf" "dlwrf" "uswrf" "ulwrf" "cloudtot" "cloudbdry" "cloudlow" "cloudmid" "cloudhi" "icetk" "icec" "prate" "pwat" "spfh2m" "tsoil010cm" "soilw010cm" "weasd" "snow" "gflux" "sfexc" "lhtfl" "shtfl" "sbsno" "hpbl"  "soill010cm"  "u10" "v10" "soilw010cm")
-        #declare -a varlist_surface=("sst")
+        declare -a varlist_surface=("land" "sst" "tmpsfc" "tmp2m" "t2min" "t2max" "ulwrftoa" "snow" "snod" "weasd" "dswrf" "dlwrf" "uswrf" "ulwrf" "cloudtot" "cloudbdry" "cloudlow" "cloudmid" "cloudhi" "icetk" "icec" "prate" "pwat" "spfh2m" "tsoil010cm" "soilw010cm" "weasd" "snow" "gflux" "sfexc" "lhtfl" "shtfl" "sbsno" "hpbl"  "soill010cm"  "u10" "v10" "soilw010cm" "albdo" "pres")
     # The plotting scripts are prepared to handle variables on the list below:
 
         oknames=(land tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx tsoil12m soilm02m sfcr spfh2m u850 v850 z500 u200 v200 cloudtot vgtyp sbsno tsoil010cm soilw010cm gflux sfexc albdo hpbl CAPE sst ustar gust rh850 rh1000 cprat soill010cm)

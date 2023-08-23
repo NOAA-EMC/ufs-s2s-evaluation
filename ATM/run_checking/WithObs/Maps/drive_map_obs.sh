@@ -57,11 +57,11 @@ enddate=20200830
         for season in ${seasonlist[@]} ; do
             for varname in ${varlist[@]}; do
 
-                day1=1; day2=1
+                day1=1; day2=7
                 echo "using $mapscript $day1 to $day2 for $varname"
                 bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname reference=$reference domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new startdate=$startdate enddate=$enddate  d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots plotdomain=$plotdomain
 
-                day1=1; day2=16
+                day1=8; day2=15
                 echo "using $mapscript $day1 to $day2 for $varname"
                 bash $mapscript whereexp=$whereexp  whereobs=$whereobs varModel=$varname reference=$reference domain=$domain hardcopy=$hardcopy season=$season nameModelA=$exp_old nameModelB=$exp_new startdate=$startdate enddate=$enddate  d1=`expr $day1 - 1` d2=`expr $day2 - 1`  nplots=$nplots plotdomain=$plotdomain
 

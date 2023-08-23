@@ -308,7 +308,7 @@ for tag in ${monthur[@]} ; do
                           $whereto/dailymean/${tag}/${varname}.${exp}.${tag}.dailymean.${res}.nc > /dev/null
                    fi
                    if [ $varname == "cloudtot" ] ; then
-                           ncrename  -v TCDC_entireatmosphere_consideredasasinglelayer_,TCDC_entireatmosphere $whereto/dailymean/${tag}/${varname}.${exp}.${tag}.dailymean.${res}.nc
+                           ncrename  -v .TCDC_entireatmosphere_consideredasasinglelayer_,TCDC_entireatmosphere $whereto/dailymean/${tag}/${varname}.${exp}.${tag}.dailymean.${res}.nc
                    fi
 
             fi
