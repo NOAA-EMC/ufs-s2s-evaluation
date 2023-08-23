@@ -13,7 +13,7 @@ startdate=20191203
 enddate=20200830
 
     hardcopy=yes           # yes | no
-    hardcopy=no           # yes | no
+    #hardcopy=no           # yes | no
 
     exp1=ufs_hr1
     exp2=ufs_hr2_test
@@ -29,9 +29,8 @@ enddate=20200830
 # The script is  prepared to handle variables on the list below 
     oknames=(land sst tmpsfc tmp2m t2min t2max ulwrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10  tsoil12m soilm02m spfh2m u850 z500 u200  cloudtot sbsno tsoil010cm soilw010cm gflux albdo hpbl CAPE ustar gust rh850 rh1000)  
 
-      for season in  DJF JJA ; do
-        #for varname in  t2min t2max tmpsfc tmp2m  icetk pwat icec cloudtot cloudbdry cloudlow cloudmid cloudhi spfh2m hpbl snod weasd tsoil010cm soilw010cm lhtfl shtfl dlwrf dswrf ulwrf uswrf ulwrftoa prate CAPE u850 z500 u200 pres albdo ; do 
-        for varname in sst ; do
+      for season in  AllAvailable ; do
+        for varname in  t2min t2max tmpsfc tmp2m  icetk pwat icec cloudtot cloudbdry cloudlow cloudmid cloudhi spfh2m hpbl snod weasd tsoil010cm soilw010cm lhtfl shtfl dlwrf dswrf ulwrf uswrf ulwrftoa prate CAPE u850 z500 u200 pres albdo ; do 
         case "${oknames[@]}" in 
                 *"$varname"*)  ;; 
                 *)

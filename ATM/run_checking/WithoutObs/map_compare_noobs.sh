@@ -286,8 +286,6 @@ mm1=${tag:4:2}
                               cat ${varModel}-${nameModel}-list.txt ${varModel}-${nameModel}-list.txt > tmp.txt
                               mv tmp.txt ${varModel}-${nameModel}-list.txt
                              done
-                              cat ${varModel}-${nameObs}-list.txt ${varModel}-${nameObs}-list.txt > tmp.txt
-                              mv tmp.txt ${varModel}-${nameObs}-list.txt
                                  LENGTH="$(($LENGTH+1))"                       # How many ICs are considered
    fi
    echo "A total of $truelength ICs are being processed"
