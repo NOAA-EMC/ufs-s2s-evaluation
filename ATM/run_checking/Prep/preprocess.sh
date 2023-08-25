@@ -44,7 +44,8 @@ monthur=()
 
 while [ $idate -le $enddate ] ; do
    monthur+=( "$idate" )
-   idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
+   #idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
+   idate=$(date -d "$idate + 1 days" "+%C%y%m%d")
 done
 
 # Loop through days with output
