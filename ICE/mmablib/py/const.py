@@ -9,8 +9,11 @@ class const:
     earth_radius   = 6371.2   # km -- sphere
     earth_spheroid = 6378.137 # km -- oblate spheroid (WGS84)
     eccen2         = 0.00669438
+ 
+    #degree_area    = earth_radius*earth_radius*4*math.pi*math.pi / 360./180.
+    degree_area    = (2.*math.pi*earth_radius / 360.)**2
 #Computed parameters
-    eccen        = math.sqrt(eccen2)
+    eccen    = math.sqrt(eccen2)
     ps_chi1  = ( eccen2/2. + 5.*eccen2*eccen2/24. + eccen2*eccen2*eccen2/12.);
     ps_chi2  = ( 7.*eccen2*eccen2/48. + 29.*eccen2*eccen2*eccen2/240.);
     ps_chi3  = ( 7.*eccen2*eccen2*eccen2/120. );
