@@ -13,6 +13,7 @@ begin
       res2=res1
 
   end if
+
   if (isStrSubset(varname,"u850")) then
       res0@cnMinLevelValF  = -12.
       res0@cnMaxLevelValF  = 12.
@@ -23,6 +24,34 @@ begin
       res1@cnLevelSpacingF  = 0.2
 
       res2=res1
+  end if
+  if (isStrSubset(varname,"u925")) then
+      res0@cnMinLevelValF  = -12.
+      res0@cnMaxLevelValF  = 12.
+      res0@cnLevelSpacingF  = 2.
+
+      res1@cnMinLevelValF  = -3.
+      res1@cnMaxLevelValF  = 3.
+      res1@cnLevelSpacingF  = 0.2
+
+      res2=res1
+  end if
+
+  if (isStrSubset("{$varModel}","spfh925")) then
+
+       res0@cnFillPalette="CBR_wet"
+       res0@cnMinLevelValF  = 0.
+       res0@cnMaxLevelValF  = 20.
+       res0@cnLevelSpacingF  = 2.
+
+       res1@cnFillPalette="precip_diff_12lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)   ; set levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*3   ; set levels
+       res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
+
+       res2=res1
+
   end if
 
   if (isStrSubset(varname,"z500")) then
@@ -144,7 +173,7 @@ begin
       res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if
 
-  if (isStrSubset(varname,"tmp").or.isStrSubset(varname,"t2m").or.isStrSubset(varname,"sst")) then
+  if (isStrSubset(varname,"tmp").or.isStrSubset(varname,"t2m").or.isStrSubset(varname,"sst").or.isStrSubset(varname,"t850").or.isStrSubset(varname,"tlowest")) then
 
       res0@cnFillPalette        = "wgne15"
       res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -153,7 +182,11 @@ begin
       res0@cnLevels     := (/260,265,270,275,280,285,290,295,300,305,310/)   ; set levels
 
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-      res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
+      ;res1@cnLevels             = (/ -5., -2.,-1.,-0.5, -0.2, -0.1, -0.025, 0.025, 0.1, 0.2, 0.5 ,1. ,2., 5./)   ; set levels
+      ;res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5,  0.5 ,1. ,2., 5., 10./)   ; set levels
+      ;res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
+      res1@cnLevels             = (/ -2.,-1.,-0.5, -0.2, -0.1, -0.02, 0.02, 0.1, 0.2, 0.5 ,1. ,2./)   ; set levels
+
 
       res2@cnFillPalette        = "temp_diff_18lev"
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -169,7 +202,8 @@ begin
 
       res1@cnFillPalette="CBR_drywet"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
-      res1@cnLevels             = (/  -8.,-4., -2.,-1.,-0.5,-0.1, 0.1, 0.5 ,1. ,2., 4., 8. /)   ; set levels
+      ;res1@cnLevels             = (/  -8.,-4., -2.,-1.,-0.5,-0.1, 0.1, 0.5 ,1. ,2., 4., 8. /)   ; set levels
+      res1@cnLevels             = (/ -16., -8.,-4., -2.,-1.,-0.5, 0.5 ,1. ,2., 4., 8., 16. /)   ; set levels
 
 ;      res1@cnFillPalette="GreenMagenta16"
 

@@ -5,21 +5,23 @@
 #SBATCH -q batch 
 ##SBATCH -q debug 
 ##SBATCH -t 30
-#SBATCH -o /scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/slurm-getP8-%j.out
+#SBATCH -o slurm-getHR4-%j.out
 ##SBATCH -q debug
-#SBATCH -J p8
+#SBATCH -J hr4
 
 module load hpss
-rundir=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/ufs_hr2/
+exp=ufs_hr4
+rundir=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/$exp
+mkdir -p $rundir
 cd $rundir
 
 # Winter set
-startdate=20191203
-enddate=20200315
-
-# Summer set
+startdate=20200129
+enddate=20200228
+# summer set
 #startdate=20200601
 #enddate=20200831
+
 
 idate=$startdate
 monthur=()
@@ -32,8 +34,9 @@ done
 
 for tag in ${monthur[@]} ; do
 
-     base=/NCEPDEV/emc-climate/5year/Jiande.Wang/WCOSS2/HR2/Winter/${tag}00
-     #base=/NCEPDEV/emc-climate/5year/Jiande.Wang/WCOSS2/HR2/Summer/${tag}00
+     base=/NCEPDEV/emc-climate/5year/role.ufscpara/WCOSS2/HR4/winter/${tag}00
+     #base=/NCEPDEV/emc-climate/5year/role.ufscpara/WCOSS2/HR4/summer/${tag}00
+
 
      hsi ls $base  > /dev/null 2>&1 #list and redirect to trash; all we care about is the comand status below
      base_exist=$?   # status is 0 if the directory on HPSS exist
@@ -43,28 +46,23 @@ for tag in ${monthur[@]} ; do
         mkdir -p $rundir/$tag
         cd $rundir/${tag}
         echo $rundir/${tag}
-        for fh in {3..384..3} ; do 
+        for fh in {0..384..6} ; do 
            fh3=$(printf "%03d" $fh)
-           pgrb=./gfs.${tag}/00/atmos/gfs.t00z.pgrb2.1p00.f$fh3
-           flux1p00=./gfs.${tag}/00/atmos/gfs.t00z.flux.1p00.f$fh3
-           sflux=./gfs.${tag}/00/atmos/gfs.t00z.sfluxgrbf${fh3}.grib2
+
+           flux1p00=gfs.$tag/00/products/atmos/grib2/1p00/gfs.t00z.flux.1p00.f${fh3}
+           pgrb1p00=gfs.$tag/00/products/atmos/grib2/1p00/gfs.t00z.pgrb2.1p00.f${fh3}
+           sflux=gfs.${tag}/00/model_data/atmos/master/gfs.t00z.sfluxgrbf${fh3}.grib2
+           pgrb=gfs.${tag}/00/products/atmos/grib2/0p25/gfs.t00z.pgrb2.0p25.f${fh3}
 
            if [ ! -f $flux1p00 ] ; then
               echo ${rundir}/${tag}/$flux1p00 does not exist
               htar -xvf $base/gfs_flux_1p00.tar $flux1p00
               echo htar -xvf $base/gfs_flux_1p00.tar $flux1p00
            fi
-           #if [ ! -f  $sflux ]; then
-           #   htar -xvf $base/gfs_flux.tar $sflux
-           #   echo htar -xvf $base/gfs_flux.tar $sflux
-           #fi
-           if [ ! -f  $pgrb ]; then
-              htar -xvf $base/gfsb.tar $pgrb 
-              echo htar -xvf $base/gfsb.tar $pgrb 
+           if [ ! -f  $pgrb1p00 ]; then
+              htar -xvf $base/gfsb.tar $pgrb1p00 
+              echo htar -xvf $base/gfsb.tar $pgrb1p00 
            fi
-        # htar -xvf $base/gfsa.tar  ./gfs.${tag}/00/atmos/gfs.t00z.pgrb2.0p25.f$fh3
-        # htar -xvf $base/gfs_netcdfb.tar  ./gfs.${tag}/00/atmos/gfs.t00z.atmf${fh3}.nc
-        # htar -xvf $base/gfs_netcdfb.tar  ./gfs.${tag}/00/atmos/gfs.t00z.sfcf${fh3}.nc
         done
      else
         echo $base does not yet exist

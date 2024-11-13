@@ -30,19 +30,24 @@ do
 
             *)
     esac
+    
 
 
 
 done
+#mask="landonly"
 
 case "$domain" in 
     "Global") latS="-90"; latN="90" ;  lonW="0" ; lonE="360" ;;
     "Nino3.4") latS="-5"; latN="5" ;  lonW="190" ; lonE="240" ;;
     "GlobalTropics") latS="-30"; latN="30" ;  lonW="0" ; lonE="360" ;;
     "Global50") latS="-50"; latN="50" ;  lonW="0" ; lonE="360" ;;
-    "Global60") latS="-60"; latN="90" ;  lonW="0" ; lonE="360" ;;
+    "Global60") latS="-60"; latN="60" ;  lonW="0" ; lonE="360" ;;
     "CONUS") latS="25"; latN="60" ;  lonW="210" ; lonE="300" ;;
-    "NAM") latS="0"; latN="90" ;  lonW="180" ; lonE="360" ;;
+    "NAM") latS="0."; latN="90." ;  lonW="180." ; lonE="360." ;;
+    "NAM") latS="75."; latN="25." ;  lonW="-135." ; lonE="-65." ;;
+
+    "NAtl") latS="0"; latN="60" ;  lonW="270" ; lonE="360" ;;
     #"NAM") latS="0"; latN="90" ;  lonW="200" ; lonE="320" ;;
     "IndoChina") latS="-20"; latN="40" ;  lonW="30" ; lonE="150" ;;
     *)
@@ -83,6 +88,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        if [ "$varModel" == "z500" ] ; then
           ncvarModel="HGT_500mb"; multModel=1; offsetModel=0.; units="m"
        fi
+       if [ "$varModel" == "t850" ] ; then
+          ncvarModel="TMP_850mb"; multModel=1; offsetModel=0.; units="%"
+       fi
        if [ "$varModel" == "rh850" ] ; then
           ncvarModel="RH_850mb"; multModel=1; offsetModel=0.; units="%"
        fi
@@ -110,6 +118,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        fi
        if [ "$varModel" == "soilw010cm" ] ; then
           ncvarModel="SOILW_0M0D1mbelowground"; multModel=100.; offsetModel=0.; units="Percent"
+       fi
+       if [ "$varModel" == "soill010cm" ] ; then
+          ncvarModel="SOILL_0M0D1mbelowground"; multModel=100.; offsetModel=0.; units="Percent"
        fi
 
        if [ "$varModel" == "pres" ] ; then
@@ -139,6 +150,9 @@ nameModelBA=${nameModelB}_minus_${nameModelA}
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
+       fi
+       if [ "$varModel" == "tlowest" ] ; then
+          ncvarModel="TMP_0D995sigmalevel"; multModel=1.; offsetModel=0.; units="deg K";
        fi
        if [ "$varModel" == "sst" ] ; then
           ncvarModel="FDNSSTMP_surface"; multModel=1.; offsetModel=0.; units="deg K"
@@ -342,6 +356,7 @@ cat << EOF > $nclscript
   ${nameModelB}_add = addfiles (${nameModelB}_list, "r")   
 
   maskMod=addfile("$whereexp/${nameModelB}/${res}/dailymean/20191203/land.${nameModelB}.20191203.dailymean.${res}.nc", "r")
+  ;maskMod=addfile("$whereexp/${nameModelB}/${res}/dailymean/20191206/land.${nameModelB}.20191206.dailymean.${res}.nc", "r")
   masker=maskMod->LAND_surface(0,{${latS}:${latN}},{${lonW}:${lonE}})
   masker=where(masker.ne.1,masker,masker@_FillValue)
 
@@ -483,37 +498,62 @@ cat << EOF > $nclscript
 
   plot=new(3,graphic)
 
-  res                     = True
-  if (isStrSubset("$domain","CONUS").or.isStrSubset("$domain","NAM").or.isStrSubset("$domain","IndoChina")) then
+  loadscript("../ncl/basicres.ncl")
+
+  if (isStrSubset("$domain","CONUS").or.isStrSubset("$domain","NA").or.isStrSubset("$domain","IndoChina")) then
      res@gsnAddCyclic        = False
   end if
-  res@gsnDraw             = False                          ; don't draw
-  res@gsnFrame            = False                          ; don't advance frame
-  res@cnFillOn             = True               ; turns on the color
-  res@mpFillOn             = False              ; turns off continent gray
-  res@cnLinesOn            = False              ; turn off contour lines
-  res@cnFillMode          = "RasterFill"
 
-  res@mpCenterLonF        = (lonStart+lonEnd)/2
-  res@mpMinLatF           = latStart
-  res@mpMaxLatF           = latEnd
-  res@mpMinLonF           = lonStart
-  res@mpMaxLonF           = lonEnd
+  if (isStrSubset("$domain","NAM")) then
+  res                   = True
+  res@mpProjection      = "LambertConformal"; choose projection
+  res@mpLambertParallel1F = 25.0         ; two parallels
+  res@mpLambertParallel2F = 55.0
+  res@mpLambertMeridianF  = -95.0        ; central meridian
+  res@mpLimitMode       = "LatLon"
+  res@mpMinLatF         =  15.
+  res@mpMinLatF         =  25.
+  res@mpMaxLatF         =  75.
+  res@mpMinLonF         = -165.
+  res@mpMinLonF         = -135.
+  res@mpMaxLonF         =  -65.
 
-  res@mpGridAndLimbOn        = True
-  res@mpShapeMode            = "FreeAspect"
-  res@vpWidthF               = 0.8
-  res@vpHeightF              = 0.4
-  res@mpGridLineDashPattern  = 5                  ; lat/lon lines dashed
-  res@mpGridLatSpacingF      = 30
-  res@mpGridLonSpacingF      = 30
-  res@mpGridLineColor        = "Gray30"
+  res@mpGridAndLimbOn   = True                   ; turn on lat/lon lines
+  res@mpPerimOn         = True                  ; turn off box around plot
+  res@mpGridLatSpacingF = 15                    ; spacing for lat lines
+  res@mpGridLonSpacingF = 15                    ; spacing for lon lines
+  res@mpFillOn          = True
+  res@mpGeophysicalLineThicknessF = 1.5
+  res@mpOutlineBoundarySets     = "geophysicalandusstates"; turn on states
+  res@mpDataBaseVersion         = "mediumres"             ; select database
+  res@mpDataSetName             = "Earth..2"
 
-  res@cnLevelSelectionMode="ManualLevels"
+  ;res@gsnAddCyclic      = True
+
+  res@cnFillOn          = True              ; color plot desired
+  res@cnLineLabelsOn    = False             ; turn off contour lines
+  res@cnLinesOn         = False
+  res@cnLevelSelectionMode = "ManualLevels"
+  res@cnMinLevelValF    = 10.0
+  res@cnMaxLevelValF    = 90.0
+  res@cnLevelSpacingF   = 10.0
+
+
+  end if
+
 
   res0=res
   res1=res
   res2=res
+
+  resratio=res0
+      resratio@cnMinLevelValF  = -200.
+      resratio@cnMaxLevelValF  = 200.
+      resratio@cnLevelSpacingF  = 20.
+
+  ;loadscript("../ncl/setcolors.ncl")
+  loadscript("../ncl/panelopts.ncl")
+ ; setcolors("{$varModel}")
 
   if (isStrSubset("{$varModel}","200")) then
       res0@cnMinLevelValF  = -40.
@@ -538,7 +578,7 @@ cat << EOF > $nclscript
       res1@cnFillPalette="precip_diff_12lev"
        res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
        res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)   ; set levels
-       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*30.   ; set levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*10.   ; set levels
        res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
 
 
@@ -572,23 +612,26 @@ cat << EOF > $nclscript
   
 
   if (isStrSubset("{$varModel}","sfcr")) then
-       res0@cnFillPalette        = "temp_diff_18lev"
+       ;res0@cnFillPalette        = "temp_diff_18lev"
        res0@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
        res0@cnLevels             = (/ 1.e-5,2.e-5,3.e-5,4.e-5,5e-5,6e-5,7e-5,8e-5,9e-5,1e-4/)   ; set levels
+       
+       res0@cnLevels             := (/ 0.001, 0.1, 0.2, 0.4, 0.6, 0.8, 1./)   ; set levels
 
-      res1@cnFillPalette        = "temp_diff_18lev"
-      res1@cnFillPalette        = "BlueDarkRed18"
+      ;res1@cnFillPalette        = "temp_diff_18lev"
+      ;res1@cnFillPalette        = "BlueDarkRed18"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       ;res1@cnLevels             = (/ -10., -5., -2.,-1.,-0.5, -0.2, -0.1, 0.1, 0.2, 0.5 ,1. ,2., 5., 10./)   ; set levels
-      ;res1@cnLevels             = (/ -1e-1, -1e-2, -1e-3,-1e-4,-1e-5, -1e-6, -1e-7, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1/)   ; set levels
 
       ;res1@cnLevels             = (/  -1e-2, -1e-3,-1e-4,-1e-5, -1e-6, -1e-7, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2/)   ; set levels
       res1@cnLevels             = (/   -1e-2,-1e-3,-1e-4,-1e-5,-1e-8,1e-8,  1e-5, 1e-4, 1e-3,1e-2/)   ; set levels
       res1@lbLabelAutoStride = False
       res1@lbLabelAngleF=90
+      res1@cnLevels             := (/ -1., -0.8, -0.6, -0.4, -0.2, -0.05, 0.05, 0.2, 0.4, 0.6, 0.8, 1./)   ; set levels
 
        res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
        res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
+
       res3=res0
       res3@cnLevels :=(/-1.e-4,-8e-5,-6e-5,-4e-5,-2e-5,2.e-5,4e-5,6e-5,8e-5,1e-4/)
   end if
@@ -641,7 +684,7 @@ cat << EOF > $nclscript
        res2=res1
   end if 
 
-  if (isStrSubset("{$varModel}","cloud").or.isStrSubset("{$varModel}","soilw").or.isStrSubset("{$varModel}","albdo")) then
+  if (isStrSubset("{$varModel}","cloud").or.isStrSubset("{$varModel}","soilw").or.isStrSubset("{$varModel}","soill").or.isStrSubset("{$varModel}","albdo")) then
        cmap=read_colormap_file("MPL_gnuplot")
        cmap = cmap(::-1,:)
 ;       res0@cnFillPalette = cmap
@@ -763,17 +806,21 @@ cat << EOF > $nclscript
 
 
   if (isStrSubset("{$varModel}","speed")) then
+      ;res0@cnFillPalette        = "temp_diff_18lev"
       res0@cnMinLevelValF  = 0.
-      res0@cnMaxLevelValF  = 30.
-      res0@cnLevelSpacingF  = 2.5
+      res0@cnMaxLevelValF  = 6.
+      res0@cnLevelSpacingF  = 0.5 
 
       res1=res0
-      res1@cnMinLevelValF  = -3
-      res1@cnMaxLevelValF  = 3
+      res1@cnMinLevelValF  = -1
+      res1@cnMaxLevelValF  = 1
+      res1@cnLevelSpacingF  = 0.2
+      res1@cnMinLevelValF  = -2
+      res1@cnMaxLevelValF  = 2
       res1@cnLevelSpacingF  = 0.5
   end if
 
-  if (isStrSubset("{$varModel}","u10")) then
+  if (isStrSubset("{$varModel}","10")) then
       res0@cnMinLevelValF  = -10.
       res0@cnMaxLevelValF  = 10.
       res0@cnLevelSpacingF  = 2.
@@ -781,6 +828,10 @@ cat << EOF > $nclscript
       res1@cnMinLevelValF  = -5.
       res1@cnMaxLevelValF  = 5.
       res1@cnLevelSpacingF  = 0.5
+
+      res1@cnMinLevelValF  = -2.
+      res1@cnMaxLevelValF  = 2.
+      res1@cnLevelSpacingF  = 0.2
 
       res2=res1
 
@@ -798,7 +849,7 @@ cat << EOF > $nclscript
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if
-  if (isStrSubset("{$varModel}","spfh2m")) then
+  if (isStrSubset("{$varModel}","spfh")) then
        res0@cnFillPalette="CBR_wet"
        res0@cnMinLevelValF  = 0.
        res0@cnMaxLevelValF  = 20.
@@ -810,7 +861,7 @@ cat << EOF > $nclscript
        res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*3   ; set levels
        res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
   end if
-  if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m").or.isStrSubset("{$varModel}","tsoil").or.isStrSubset("{$varModel}","sst")) then
+  if (isStrSubset("{$varModel}","tmpsfc").or.isStrSubset("{$varModel}","tmp2m").or.isStrSubset("{$varModel}","tsoil").or.isStrSubset("{$varModel}","sst").or.isStrSubset("{$varModel}","t850").or.isStrSubset("{$varModel}","tlowest")) then
       res0@cnMinLevelValF  = 220.
       res0@cnMaxLevelValF  = 310.
       res0@cnLevelSpacingF  = 10.
@@ -854,6 +905,7 @@ cat << EOF > $nclscript
       res1@cnFillPalette="precip_diff_12lev"
       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
       res1@cnLevels             = (/   -1.,-0.5, -0.2,-0.1,-0.05, 0.05, 0.1, 0.2, 0.5 ,1.  /)   ; set levels
+      res1@cnLevels             = (/   -0.5, -0.2,-0.1,-0.05,-0.01, 0.01, 0.05, 0.1, 0.2, 0.5   /)   ; set levels
 
       res2@cnFillPalette="precip_diff_12lev"
       res2@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
@@ -984,7 +1036,11 @@ cat << EOF > $nclscript
        res2@cnLevels             = (/ -40., -20., -10.,-5.,-2., 2. ,5. ,10. ,20. , 40./)   ; set levels
   end if 
 
+  res0@mpGeophysicalLineThicknessF=2
   res1@mpGeophysicalLineThicknessF=2
+  res2@mpGeophysicalLineThicknessF=2
+ 
+
 
 
 
@@ -1015,6 +1071,7 @@ cat << EOF > $nclscript
      plot(0) = gsn_csm_contour_map(wks,${nameModelA}_mean,res0)
      plot(1) = gsn_csm_contour_map(wks,${nameModelB}_mean,res0)
      plot(2) = gsn_csm_contour_map(wks,${nameModelBA}_diff,res1)
+     ;plot(2) = gsn_csm_contour_map(wks,ratio,resratio)
      gsn_panel(wks,plot,(/1,1,1/),panelopts)
   end if
   if ($nplots.eq.2) then

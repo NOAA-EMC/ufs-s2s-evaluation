@@ -5,10 +5,11 @@
 #SBATCH -q debug             # -q specifies the queue; debug has a 30 min limit, but the default walltime is only 5min, to change, see below:
 #SBATCH -t 30                # -t specifies walltime in minutes; if in debug, cannot be more than 30
 
-module load intel/2020
+#module load intel/2020
+module load gnu/13.2.0 intel/2023.2.0 netcdf/4.7.0 wgrib2/3.1.2_ncep
 module load nco
 module load cdo
-module load wgrib2
+#module load wgrib2
 
 
 for ARGUMENT in "$@"
@@ -34,8 +35,8 @@ done
 
 
 # ------------------ Generally, DO NOT CHANGE BELOW -----------------
-#myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa uswrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soill01d soill14d soill41m soill12m tsoil01d tsoil14d tsoil41m tsoil12m soilm02m sfcr spfh2m u850 v850 z500 u200 v200 cloudtot)
-myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa uswrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soilm02m tsoil12m sfcr spfh2m u850 v850 z500 u200 v200 cloudtot vgtyp sbsno tsoil010cm soilw010cm gflux sfexc albdo hpbl CAPE sst ustar gust rh850 rh1000 cprat soill010cm)
+#myarray=(land tmpsfc tmp2m t2min t2max ulwrftoa uswrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soill01d soill14d soill41m soill12m tsoil01d tsoil14d tsoil41m tsoil12m soilm02m sfcr spfh2m u925 v925 spfh925 u850 v850 z500 u200 v200 cloudtot)
+myarray=(land tlowest tmpsfc tmp2m t2min t2max ulwrftoa uswrftoa dlwrf dswrf ulwrf uswrf prate pwat icetk icec cloudbdry cloudlow cloudmid cloudhi snow weasd snod lhtfl shtfl pres u10 v10 uflx vflx soilm02m tsoil12m sfcr spfh2m u925 v925 spfh925 u850 v850 z500 u200 v200 cloudtot vgtyp sbsno tsoil010cm soilw010cm gflux sfexc albdo hpbl CAPE sst ustar gust rh850 rh1000 t850 cprat soill010cm)
 
 idate=$startdate
 monthur=()
@@ -44,16 +45,22 @@ monthur=()
 
 while [ $idate -le $enddate ] ; do
    monthur+=( "$idate" )
-   #idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
-   idate=$(date -d "$idate + 1 days" "+%C%y%m%d")
+   idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
+   #idate=$(date -d "$idate + 1 days" "+%C%y%m%d")
 done
 
 # Loop through days with output
 for tag in ${monthur[@]} ; do
-            indir=${wherefrom}/${tag}/gfs.$tag/00/atmos/
+         #   indir=${wherefrom}/${tag}/gfs.$tag/00/atmos/
+         if [ $res == "1p00" ] ; then
+            indir=${wherefrom}/$tag/gfs.$tag/00/products/atmos/grib2/1p00/
+            else
+            indir=${wherefrom}/$tag/gfs.$tag/00/model_data/atmos/master/
+         fi
+         echo "indir is " $indir
          # try a few more variants of the layout, in case the previous one doesn't exist
             if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}00/gfs.${tag}/00/atmos ; fi
-            if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}/gfs.$tag/00/ ; fi
+            if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}/gfs.$tag/00/atmos ; fi
             if [ ! -d $indir ] ; then indir=${wherefrom}/${tag}00/gfs.$tag/00/ ; fi
             if [ ! -d $indir ] ; then indir=${wherefrom}/gfs.$tag/00/atmos ; fi
             if [ ! -d $indir ] ; then indir=${wherefrom}/gfs.$tag/00/ ; fi
@@ -73,6 +80,9 @@ for tag in ${monthur[@]} ; do
 
             aggregate="-daymean"
             tomatch2=""
+            if [ $varname == "tlowest" ] ; then
+               tomatch="TMP:0.995"; aggregate="-daymean"
+            fi
             if [ $varname == "sst" ] ; then
                tomatch="FDNSSTMP:surface"; aggregate="-daymean"
             fi
@@ -100,6 +110,9 @@ for tag in ${monthur[@]} ; do
             if [ $varname == "rh850" ] ; then
                tomatch="RH:850"; aggregate="-daymean"
             fi
+            if [ $varname == "t850" ] ; then
+               tomatch="TMP:850"; aggregate="-daymean"
+            fi
             if [ $varname == "z500" ] ; then
                tomatch="HGT:500"; aggregate="-daymean"
             fi
@@ -114,6 +127,15 @@ for tag in ${monthur[@]} ; do
             fi
             if [ $varname == "u850" ] ; then
                tomatch="UGRD:850"; aggregate="-daymean"
+            fi
+            if [ $varname == "u925" ] ; then
+               tomatch="UGRD:925"; aggregate="-daymean"
+            fi
+            if [ $varname == "v925" ] ; then
+               tomatch="VGRD:925"; aggregate="-daymean"
+            fi
+            if [ $varname == "spfh925" ] ; then
+               tomatch="SPFH:925"; aggregate="-daymean"
             fi
             if [ $varname == "sfcr" ] ; then
                tomatch="SFCR:surface"; aggregate="-daymean"
@@ -257,6 +279,7 @@ for tag in ${monthur[@]} ; do
                           echo "aggregating $exp $tag $varname"
                           #--  Extract target variable as grib2 file
 
+                           #for hhh1 in {6..384..6} ; do
                            for hhh1 in {6..384..6} ; do
                                hhh=$(printf "%03d" $hhh1)
                                if [ $res == "Orig" ] ; then
