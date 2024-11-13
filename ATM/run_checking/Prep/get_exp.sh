@@ -1,54 +1,70 @@
 #!/bin/bash 
 #SBATCH --ntasks=1 -p service 
-#SBATCH -t 4:00:00 
-#SBATCH -A marine-cpu
-#SBATCH -J b31-getfiles
+#SBATCH -A fv3-cpu
+#SBATCH -t 12:00:00 
+#SBATCH -q batch 
+##SBATCH -q debug 
+##SBATCH -t 30
+#SBATCH -o slurm-getHR4-%j.out
+##SBATCH -q debug
+#SBATCH -J hr4
 
-set -x
 module load hpss
+exp=ufs_hr4
+rundir=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/$exp
+mkdir -p $rundir
+cd $rundir
 
-    # Start/end delimiters for cases to get
+# Winter set
+startdate=20200129
+enddate=20200228
+# summer set
+#startdate=20200601
+#enddate=20200831
 
-        ystart=2011; yend=2018;  ystep=1
-        mstart=1;    mend=12;    mstep=1
-        dstart=1;    dend=15;    dstep=14
 
-    # Name and location of experiment output on HPSS
+idate=$startdate
+monthur=()
 
-        exp_new=ufs_p6
-        hpss_root=/NCEPDEV/emc-climate/5year/Jiande.Wang/HERA/prototype6.0/c384/       # location on HPSS
-        upload_root=/scratch1/NCEPDEV/stmp2/Lydia.B.Stefanova/fromHPSS/                # store uploaded data here
+# Go every 3 days
+while [ $idate -le $enddate ] ; do
+   monthur+=( "$idate" )
+   idate=$(date -d "$idate + 3 days" "+%C%y%m%d")
+done
 
-#===================================================================================================================
-for exp in $exp_new ; do
-    upload_location=${upload_root}/${exp}
-    for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )) ; do
-    for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )) ; do
-    for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )) ; do
-        mm=$(printf "%02d" $mm1)
-        dd=$(printf "%02d" $dd1)
-        tag=$yyyy$mm${dd}00
-        if [ ! -f ${upload_location}/$tag/gfs.$yyyy$mm$dd/00/atmos/gfs.t00z.flux.1p00.f840 ] ; then 
-           hpss_location=${hpss_root}/$tag
-           atmflux1p00=gfs_flux_1p00.tar
-           echo "Working on $tag for $exp flux.1p00"
-           mkdir -p ${upload_location}/$tag
-           cd ${upload_location}/$tag
-           htar -xvf ${hpss_location}/$atmflux1p00
-        else
-           echo "$exp $tag flux.1p00 already uploaded" 
-        fi
-        if [ ! -f ${upload_location}/$tag/gfs.$yyyy$mm$dd/00/atmos/gfs.t00z.pgrb2.1p00.f840 ] ; then
-           hpss_location=${hpss_root}/$tag
-           atmpgrb1p00=gfs_pgrb2_1p00.tar
-           echo "Working on $tag for $exp pgrb2.1p00"
-           mkdir -p ${upload_location}/$tag
-           cd ${upload_location}/$tag
-           htar -xvf ${hpss_location}/$atmpgrb1p00
-        else
-           echo "$exp $tag pgrb2.1p00 already uploaded" 
-        fi
-    done
-    done
-    done
+for tag in ${monthur[@]} ; do
+
+     base=/NCEPDEV/emc-climate/5year/role.ufscpara/WCOSS2/HR4/winter/${tag}00
+     #base=/NCEPDEV/emc-climate/5year/role.ufscpara/WCOSS2/HR4/summer/${tag}00
+
+
+     hsi ls $base  > /dev/null 2>&1 #list and redirect to trash; all we care about is the comand status below
+     base_exist=$?   # status is 0 if the directory on HPSS exist
+
+     if [ $base_exist = 0 ]; then 
+        echo working on $tag
+        mkdir -p $rundir/$tag
+        cd $rundir/${tag}
+        echo $rundir/${tag}
+        for fh in {0..384..6} ; do 
+           fh3=$(printf "%03d" $fh)
+
+           flux1p00=gfs.$tag/00/products/atmos/grib2/1p00/gfs.t00z.flux.1p00.f${fh3}
+           pgrb1p00=gfs.$tag/00/products/atmos/grib2/1p00/gfs.t00z.pgrb2.1p00.f${fh3}
+           sflux=gfs.${tag}/00/model_data/atmos/master/gfs.t00z.sfluxgrbf${fh3}.grib2
+           pgrb=gfs.${tag}/00/products/atmos/grib2/0p25/gfs.t00z.pgrb2.0p25.f${fh3}
+
+           if [ ! -f $flux1p00 ] ; then
+              echo ${rundir}/${tag}/$flux1p00 does not exist
+              htar -xvf $base/gfs_flux_1p00.tar $flux1p00
+              echo htar -xvf $base/gfs_flux_1p00.tar $flux1p00
+           fi
+           if [ ! -f  $pgrb1p00 ]; then
+              htar -xvf $base/gfsb.tar $pgrb1p00 
+              echo htar -xvf $base/gfsb.tar $pgrb1p00 
+           fi
+        done
+     else
+        echo $base does not yet exist
+     fi
 done

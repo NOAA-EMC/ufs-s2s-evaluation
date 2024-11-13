@@ -24,23 +24,19 @@ do
             season)     season=${VALUE} ;;   
             nameModelA) nameModelA=${VALUE} ;;
             nameModelB) nameModelB=${VALUE} ;;
-            ystart)     ystart=${VALUE};;
-            yend)       yend=${VALUE};;
-            ystep)       ystep=${VALUE};;
-            mstart)     mstart=${VALUE};;
-            mend)       mend=${VALUE};;
-            mstep)      mstep=${VALUE};;
-            dstart)     dstart=${VALUE};;
-            dend)       dend=${VALUE};;
-            dstep)      dstep=${VALUE};;
+            startdate)  startdate=${VALUE} ;;
+            enddate)    enddate=${VALUE} ;;
             d1)         d1=${VALUE};;
             d2)         d2=${VALUE};;
             nplots)     nplots=${VALUE};;
+            plotdomain) plotdomain=${VALUE};;
             *)
     esac
 
 done
 
+
+  #  "NAM") latS="0."; latN="90." ;  lonW="150." ; lonE="360." ;;
 case "$domain" in 
     "Global") latS="-90"; latN="90" ;  lonW="0" ; lonE="360" ;;
     "Nino3.4") latS="-5"; latN="5" ;  lonW="190" ; lonE="240" ;;
@@ -49,14 +45,16 @@ case "$domain" in
     "Global50") latS="-50"; latN="50" ;  lonW="0" ; lonE="360" ;;
     "Global60") latS="-60"; latN="90" ;  lonW="0" ; lonE="360" ;;
     "CONUS") latS="25"; latN="60" ;  lonW="210" ; lonE="300" ;;
-    "NAM") latS="0"; latN="90" ;  lonW="180" ; lonE="360" ;;
+    "NAM") latS="-90."; latN="90." ;  lonW="0." ; lonE="360." ;;
+    "NAM") latS="75."; latN="25." ;  lonW="-135." ; lonE="-65." ;;
     "NP") latS="50"; latN="90" ;  lonW="0" ; lonE="360" ;;
-    "SP") latS="-90"; latN="-50" ;  lonW="0" ; lonE="360" ;;
+    "SP") latS="-90"; latN="-60" ;  lonW="0" ; lonE="360" ;;
     "IndoChina") latS="-20"; latN="40" ;  lonW="30" ; lonE="150" ;;
     *)
 esac
        if [ "$varModel" == "cloudtot" ] ; then
            ncvarModel="TCDC_entireatmosphere"; multModel=1.; offsetModel=0.; units="percent"
+           ncvarModel2="TCDC_entireatmosphere_consideredasasinglelayer_"; multModel=1.; offsetModel=0.; units="percent"
            nameObs="CERES";  varObs="total_CERES"; ncvarObs="cldarea_total_daily"; multObs=1.; offsetObs=0.
        fi
        if [ "$varModel" == "cloudlow" ] ; then
@@ -67,25 +65,52 @@ esac
            ncvarModel="HCDC_highcloudlayer"; multModel=1.; offsetModel=0.; units="percent"
            nameObs="CERES";  varObs="high_CERES"; ncvarObs="cldarea_high_daily"; multObs=1.; offsetObs=0.
        fi
+       if [ "$varModel" == "cloudmid" ] ; then
+           ncvarModel="MCDC_middlecloudlayer"; multModel=1.; offsetModel=0.; units="percent"
+           nameObs="CERES";  varObs="mid_high_CERES"; ncvarObs="cldarea_mid_high_daily"; multObs=1.; offsetObs=0.
+       fi
 
        if [ "$varModel" == "uswrf" ] ; then
            ncvarModel="USWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
-           nameObs="CERESflx";  varObs="adj_atmos_sw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+           nameObs="CERESini";  varObs="ini_sfc_sw_up_all_daily_CERESini"; ncvarObs="ini_sfc_sw_up_all_daily"; multObs=1.; offsetObs=0.
        fi
 
        if [ "$varModel" == "dswrf" ] ; then
            ncvarModel="DSWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
-           nameObs="CERESflx";  varObs="adj_atmos_sw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_sw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+           nameObs="CERESini";  varObs="ini_sfc_sw_down_all_daily_CERESini"; ncvarObs="ini_sfc_sw_down_all_daily"; multObs=1.; offsetObs=0.
        fi
        if [ "$varModel" == "ulwrf" ] ; then
            ncvarModel="ULWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
-           nameObs="CERESflx";  varObs="adj_atmos_lw_up_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_up_all_surface_daily"; multObs=1.; offsetObs=0.
+           nameObs="CERESini";  varObs="ini_sfc_lw_up_all_daily_CERESini"; ncvarObs="ini_sfc_lw_up_all_daily"; multObs=1.; offsetObs=0.
        fi
        if [ "$varModel" == "dlwrf" ] ; then
            ncvarModel="DLWRF_surface"; multModel=1.; offsetModel=0.; units="W/m**2"
-           nameObs="CERESflx";  varObs="adj_atmos_lw_down_all_surface_daily_CERESflx"; ncvarObs="adj_atmos_lw_down_all_surface_daily"; multObs=1.; offsetObs=0.
+           nameObs="CERESini";  varObs="ini_sfc_lw_down_all_daily_CERESini"; ncvarObs="ini_sfc_lw_down_all_daily"; multObs=1.; offsetObs=0.
        fi
-
+       if [ "$varModel" == "ustar" ] ; then
+          ncvarModel="FRICV_surface"; multModel=1.; offsetModel=0.; units="m/s"
+          nameObs="era5";  varObs="zust"; ncvarObs="zust"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "era5" ] ; then
+		offsetObs=1.39366586708742 ;
+		multObs=4.25332379746674e-05 ;
+          fi
+       fi
+       if [ "$varModel" == "u10" ] ; then
+          ncvarModel="UGRD_10maboveground"; multModel=1.; offsetModel=0.; units="m/s"
+          nameObs="era5";  varObs="u10"; ncvarObs="u10"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "era5" ] ; then
+		offsetObs=-0.961467420958611 ;
+		multObs=0.00113613586253479 ;
+          fi
+       fi
+       if [ "$varModel" == "v10" ] ; then
+          ncvarModel="VGRD_10maboveground"; multModel=1.; offsetModel=0.; units="m/s"
+          nameObs="era5";  varObs="v10"; ncvarObs="v10"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "era5" ] ; then
+		offsetObs=11.1050833641156 ;
+		multObs=0.00153371122197619 
+          fi
+       fi
        if [ "$varModel" == "u200" ] ; then
           ncvarModel="UGRD_200mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
           nameObs="${reference:-era5}";  varObs="u200"; ncvarObs="UGRD_200mb"; multObs=1.; offsetObs=0.
@@ -96,6 +121,13 @@ esac
        if [ "$varModel" == "u850" ] ; then
           ncvarModel="UGRD_850mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
           nameObs="${reference:-era5}";  varObs="u850"; ncvarObs="UGRD_850mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
+       fi
+       if [ "$varModel" == "t850" ] ; then
+          ncvarModel="TMP_850mb"; multModel=1.; offsetModel=0.; units="K";mask="nomask"
+          nameObs="${reference:-GDAS}";  varObs="t850"; ncvarObs="TMP_850mb"; multObs=1.; offsetObs=0.
           if [ "$nameObs" == "gefs12r" ] ; then
               varObs="${varObs}.gefs12r"
           fi
@@ -121,26 +153,102 @@ esac
        fi
        if [ "$varModel" == "tmp2m" ] ; then
           ncvarModel="TMP_2maboveground"; multModel=1.; offsetModel=0.; units="deg K";mask="nomask"
-          nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          #mask="landonly"
+          #nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="TMP_2maboveground"; multObs=1.; offsetObs=0.
+          nameObs="${reference:-era5}";  varObs="t2m"; ncvarObs="t2m"; multObs=1.; offsetObs=0.
           if [ "$nameObs" == "gefs12r" ] ; then
               varObs="tmp2m.gefs12r"
+	      ncvarObs="TMP_2maboveground"
+          fi
+          if [ "$nameObs" == "GDAS" ] ; then
+              varObs="tmp2m"
+	      ncvarObs="TMP_2maboveground"
+          fi
+       fi
+       if [ "$varModel" == "tlowest" ] ; then
+          ncvarModel="TMP_0D995sigmalevel"; multModel=1.; offsetModel=0.; units="deg K";mask="nomask"
+          mask="landonly"
+          nameObs="${reference:-GDAS}";  varObs="tlowest"; ncvarObs="TMP_0D995sigmalevel"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "GDAS" ] ; then
+              varObs="tlowest"
+          fi
+       fi
+       if [ "$varModel" == "u925" ] ; then
+          ncvarModel="UGRD_925mb"; multModel=1.; offsetModel=0.; units="m/s";mask="nomask"
+          nameObs="${reference:-GDAS}";  varObs="u925"; ncvarObs="UGRD_925mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "GDAS" ] ; then
+              varObs="u925"
+          fi
+       fi
+       if [ "$varModel" == "v925" ] ; then
+          ncvarModel="VGRD_925mb"; multModel=1.; offsetModel=0.; units="m/s";mask="landonly"
+          nameObs="${reference:-GDAS}";  varObs="v925"; ncvarObs="VGRD_925mb"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "GDAS" ] ; then
+              varObs="v925"
+          fi
+       fi
+       if [ "$varModel" == "spfh925" ] ; then
+          ncvarModel="SPFH_925mb"; multModel=1000.; offsetModel=0.; units="g/kg";mask="landonly"
+          nameObs="${reference:-GDAS}";  varObs="spfh925"; ncvarObs="SPFH_925mb"; multObs=1000.; offsetObs=0.
+          if [ "$nameObs" == "GDAS" ] ; then
+              varObs="spfh925"
           fi
        fi
        if [ "$varModel" == "tmpsfc" ] ; then
           ncvarModel="TMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
           nameObs="sst_OSTIA";  varObs="sst_OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
        fi
+       if [ "$varModel" == "sst" ] ; then
+          varModel="tmpsfc"
+          varModel="sst"
+          ncvarModel="FDNSSTMP_surface"; multModel=1.; offsetModel=0.; units="deg K";mask="oceanonly"
+          nameObs="sst_OSTIA";  varObs="sst_OSTIA"; ncvarObs="analysed_sst"; multObs=1.; offsetObs=0.
+       fi
        if [ "$varModel" == "prate" ] ; then
           ncvarModel="PRATE_surface"; multModel=86400.; offsetModel=0.; units="mm/day"; mask="landonly"
-          nameObs="pcp_TRMM";  varObs="pcp_TRMM"; ncvarObs="precipitation"; multObs=1; offsetObs=0.; mask="nomask"
+          nameObs="IMERG";  varObs="imerg"; ncvarObs="precipitationCal"; multObs=1; offsetObs=0. ; mask="nomask"
+
        fi
        if [ "$varModel" == "ulwrftoa" ] ; then
           ncvarModel="ULWRF_topofatmosphere"; multModel=1.; offsetModel=0.; units="W/m^2"; mask="nomask"
 		  nameObs="olr_HRIS"; varObs="ulwrftoa"; ncvarObs="olr"; multObs=1.; offsetObs=0.; units="W/m^2"; mask="nomask"
+		  nameObs="CEREStoa"; varObs="ulwrftoa_CERES"; ncvarObs="ulwrftoa"; multObs=1.; offsetObs=0.; units="W/m^2"; mask="nomask"
        fi
+       if [ "$varModel" == "uswrftoa" ] ; then
+          ncvarModel="USWRF_topofatmosphere"; multModel=1.; offsetModel=0.; units="W/m^2"; mask="nomask"
+		  nameObs="CEREStoa"; varObs="uswrftoa_CERES"; ncvarObs="uswrftoa"; multObs=1.; offsetObs=0.; units="W/m^2"; mask="nomask"
+       fi
+       if [ "$varModel" == "CAPE" ] ; then
+          ncvarModel="CAPE_surface"; multModel=1.; offsetModel=0.; units="J/kg";mask="nomask"
+          nameObs="gefs12r";  varObs="CAPE"; ncvarObs="CAPE_surface"; multObs=1.; offsetObs=0.
+          if [ "$nameObs" == "gefs12r" ] ; then
+              varObs="${varObs}.gefs12r"
+          fi
+       fi
+
+       if [ "$varModel" == "soilw010cm" ] ; then
+          ncvarModel="SOILW_0M0D1mbelowground"; multModel=100.; offsetModel=0.; units="Percent"
+          nameObs="CCI"; varObs="SSM"; ncvarObs="ssm"; multObs=100.; offsetObs=0.
+       fi
+       if [ "$varModel" == "soill010cm" ] ; then
+          ncvarModel="SOILL_0M0D1mbelowground"; multModel=100.; offsetModel=0.; units="Percent"
+          nameObs="CCI"; varObs="SSM"; ncvarObs="ssm"; multObs=100.; offsetObs=0.
+       fi
+       if [ "$varModel" == "weasd" ] ; then
+          ncvarModel="WEASD_surface"; multModel=0.001; offsetModel=0.; units="m" ; mask="landonly"
+          nameObs="era5"; varObs="weasd"; ncvarObs="sd"; multObs=1.; offsetObs=0.
+
+          ncvarModel="WEASD_surface"; multModel=1.; offsetModel=0.; units="mm" ; mask="landonly"
+          nameObs="era5"; varObs="weasd"; ncvarObs="sd"; multObs=1000.; offsetObs=0.
+       fi
+
           nameModelBA=${nameModelB}_minus_${nameModelA}
-          nameModelB0=${nameModelA}_minus_${nameObs}
-          nameModelA0=${nameModelB}_minus_${nameObs}
+
+          #nameModelB0=${nameModelA}_minus_${nameObs}
+          #nameModelA0=${nameModelB}_minus_${nameObs}
+
+          nameModelA0=${nameModelA}_minus_${nameObs}
+          nameModelB0=${nameModelB}_minus_${nameObs}
 
 
 # Make list of files whose dates are in common between modelA and modelB, and match the specified season and date range
@@ -155,19 +263,28 @@ esac
 
        LENGTH=0
        pass=0
-       for (( yyyy=$ystart; yyyy<=$yend; yyyy+=$ystep )) ; do
-       for (( mm1=$mstart; mm1<=$mend; mm1+=$mstep )) ; do
-       for (( dd1=$dstart; dd1<=$dend; dd1+=$dstep )) ; do
-           mm=$(printf "%02d" $mm1)
-           dd=$(printf "%02d" $dd1)
-           tag=$yyyy$mm${dd}
 
+       idate=$startdate
+       monthur=()
+
+
+# Days with output: monthur
+
+       while [ $idate -le $enddate ] ; do
+          monthur+=( "$idate" )
+          idate=$(date -d "$idate + 1 days" "+%C%y%m%d")
+       done
+
+# Loop through days with output
+echo $monthur
+for tag in ${monthur[@]} ; do
+mm1=${tag:4:2}
            if [ -f $whereexp/$nameModelA/1p00/dailymean/${tag}/${varModel}.${nameModelA}.${tag}.dailymean.1p00.nc ] ; then
               if [ -f $whereexp/$nameModelB/1p00/dailymean/${tag}/${varModel}.${nameModelB}.${tag}.dailymean.1p00.nc ] ; then
                   pathObs="$whereobs/$nameObs/1p00/dailymean/$tag"
                   if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/dailymean/" ; fi
                   if [ ! -d $pathObs ] ; then pathObs="$whereobs/$nameObs/1p00/" ; fi
-                  #echo $pathObs/${varObs}.day.mean.${tag}.1p00.nc
+                  echo $pathObs/${varObs}.day.mean.${tag}.1p00.nc
                   if [ -f $pathObs/${varObs}.day.mean.${tag}.1p00.nc ] ; then
 
                  case "${season}" in
@@ -225,8 +342,6 @@ esac
            fi
            fi
        done
-       done
-       done
    truelength=$LENGTH        # Provision for when a single date ($tag) is in common - repeat in list, report "$truelength"
    if [ $LENGTH -eq 1 ] ; then
                              for nameModel in $nameModelA $nameModelB ; do
@@ -267,7 +382,7 @@ cat << EOF > $nclscript
      wks_type@wkHeight            = 800
   end if 
 
-  wks                          = gsn_open_wks(wks_type,"biasmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${nameObs}.${season}.${startname}.$domain.d${d1p1}-d${d2p1}")
+  wks                          = gsn_open_wks(wks_type,"biasmaps.${varModel}.${nameModelB}.vs.${nameModelA}.${nameObs}.${season}.${startname}.$plotdomain.d${d1p1}-d${d2p1}")
 
   latStart=${latS}
   latEnd=${latN}
@@ -288,7 +403,7 @@ cat << EOF > $nclscript
   ${nameModelB}_add = addfiles (${nameModelB}_list, "r")   
   ${nameObs}_add = addfiles (${nameObs}_list, "r")   
 
-  maskMod=addfile("$whereexp/${nameModelA}/1p00/dailymean/20120101/land.${nameModelA}.20120101.dailymean.1p00.nc", "r")
+  maskMod=addfile("$whereexp/${nameModelB}/1p00/dailymean/20191203/land.${nameModelB}.20191203.dailymean.1p00.nc", "r")
   masker=maskMod->LAND_surface(0,{${latS}:${latN}},{${lonW}:${lonE}})
   masker=where(masker.ne.1,masker,masker@_FillValue)
 
@@ -302,18 +417,31 @@ cat << EOF > $nclscript
   ${nameModelA}_lat_0=${nameModelA}_add[:]->latitude
   ${nameModelA}_lon_0=${nameModelA}_add[:]->longitude
 
+  if isStrSubset("$ncvarModel","TCDC_entireatmosphere") then
+     if isStrSubset("$nameModelA","p8")
+        ${nameModelA}_fld = ${nameModelA}_add[:]->TCDC_entireatmosphere_consideredasasinglelayer_
+     else
+        ${nameModelA}_fld = ${nameModelA}_add[:]->${ncvarModel}
+     end if 
+     if isStrSubset("$nameModelB","p8")
+        ${nameModelB}_fld = ${nameModelB}_add[:]->TCDC_entireatmosphere_consideredasasinglelayer_
+     else 
+        ${nameModelB}_fld = ${nameModelB}_add[:]->${ncvarModel}
+     end if 
+  else
   ${nameModelA}_fld = ${nameModelA}_add[:]->${ncvarModel}
   ${nameModelB}_fld = ${nameModelB}_add[:]->${ncvarModel}
-  if isStrSubset("$nameObs","sst_OSTIA") then
+  end if
+  if isStrSubset("$nameObs","sst_OSTIA").or.isStrSubset("$varObs","weasd") then
      ${nameObs}_fld = short2flt(${nameObs}_add[:]->${ncvarObs})
-  else
-     if isStrSubset("$nameObs","TRMM") then
-  
+  else if isStrSubset("$nameObs","IMERG") then
        ${nameObs}_fld_toflip = ${nameObs}_add[:]->${ncvarObs}
        ${nameObs}_fld = ${nameObs}_fld_toflip(ncl_join|:,time|:,lat|:,lon|:)
-     else
+;  else if isStrSubset("$varObs","weasd") then
+;          ${nameObs}_fld = short2flt(${nameObs}_add[:]->${ncvarObs})
+  else 
      ${nameObs}_fld = ${nameObs}_add[:]->${ncvarObs}
-     end if 
+  end if
   end if
 
   timeObs = ${nameObs}_add[:]->time
@@ -458,13 +586,87 @@ cat << EOF > $nclscript
      res@mpCenterLonF = -45
   end if
 
+  if (isStrSubset("$domain","NAM")) then
+  res                   = True
+  res@mpProjection      = "LambertConformal"; choose projection
+  res@mpLambertParallel1F = 25.0         ; two parallels
+  res@mpLambertParallel2F = 55.0
+  res@mpLambertMeridianF  = -95.0        ; central meridian
+  res@mpLimitMode       = "LatLon"
+  res@mpMinLatF         =  15.
+  res@mpMinLatF         =  25.
+  res@mpMaxLatF         =  75.
+  res@mpMinLonF         = -165.
+  res@mpMinLonF         = -135.
+  res@mpMaxLonF         =  -65.
+
+  res@mpGridAndLimbOn   = True                   ; turn on lat/lon lines
+  res@mpPerimOn         = True                  ; turn off box around plot
+  res@mpGridLatSpacingF = 15                    ; spacing for lat lines
+  res@mpGridLonSpacingF = 15                    ; spacing for lon lines
+  res@mpFillOn          = True
+  res@mpGeophysicalLineThicknessF = 1.5
+  res@mpOutlineBoundarySets     = "geophysicalandusstates"; turn on states
+  res@mpDataBaseVersion         = "mediumres"             ; select database
+  res@mpDataSetName             = "Earth..2"
+
+  res@gsnAddCyclic      = True
+
+  res@cnFillOn          = True              ; color plot desired
+  res@cnLineLabelsOn    = False             ; turn off contour lines
+  res@cnLinesOn         = False
+;  res@cnLevelSelectionMode = "ManualLevels"
+;  res@cnMinLevelValF    = 10.0
+;  res@cnMaxLevelValF    = 90.0
+;  res@cnLevelSpacingF   = 10.0
+
+
+  end if
+
+  if (isStrSubset("$plotdomain","Africa")) then
+       res@mpMinLatF              = -40
+       res@mpMaxLatF              = 40
+       res@mpMinLonF              = -30
+       res@mpMaxLonF              = 60
+       res@mpCenterLonF           = 45
+  end if
+
   res0=res
   res1=res
   res2=res
 
   loadscript("../../ncl/setcolors.ncl")
   loadscript("../../ncl/panelopts.ncl")
+
   setcolors("{$varModel}")
+  if (isStrSubset("{$varModel}","spfh925")) then
+
+      cmap = read_colormap_file("amwg")
+      cmap = cmap(::-1,:) ; reverse the color map
+      res0@cnFillPalette = cmap
+
+       ;res0@cnFillPalette="CBR_wet"
+       ;res0@cnFillPalette="amwg"
+       res0@cnMinLevelValF  = 0.
+       res0@cnMaxLevelValF  = 20.
+       res0@cnLevelSpacingF  = 2.
+
+       res1@cnFillPalette="precip_diff_12lev"
+       res1@cnLevelSelectionMode = "ExplicitLevels"   ; set explicit contour levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)   ; set levels
+       res1@cnLevels             = (/ -1., -0.8, -0.6,-0.4,-0.2, 0.2 ,0.4 ,0.6 ,0.8 , 1./)*2   ; set levels
+       res1@cnFillColors         = (/ 1,  2,   3,    4,  5,  6,  7,  8,  9,    10,  11/)  ; set the colors to be used
+
+       res2=res1
+
+  end if
+
+  
+     if (isStrSubset("$varModel","weasd")) then
+       res0@cnLevels =res0@cnLevels*1000. 
+       res1@cnLevels =res1@cnLevels*1000. 
+     end if 
+
 
   panelopts@gsnPanelMainString = "${varModel} vs ${nameObs}, $season, day ${d1p1} - day ${d2p1},  $truelength ICs"
 
@@ -498,6 +700,7 @@ cat << EOF > $nclscript
      end if
      gsn_panel(wks,plot,(/3/),panelopts)
   end if
+
   if ($nplots.eq.1) then
      if (isStrSubset("$domain","NP").or.isStrSubset("$domain","SP")) then
         plot(0) = gsn_csm_contour_map_polar(wks,${nameModelBA}_diff,res1)
